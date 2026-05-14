@@ -1,0 +1,63 @@
+using System;
+using UnityEngine;
+
+namespace IdleAirport.GameCore
+{
+    public sealed class EconomyController : MonoBehaviour
+    {
+        public event Action<int> OnMoneyChanged;
+        public event Action<int> OnTotalPassengersProcessedChanged;
+
+        [SerializeField] private int _money;
+        [SerializeField] private int _totalPassengersProcessed;
+        [SerializeField] private int _moneyPerPassenger = 1;
+
+        public int Money => _money;
+        public int TotalPassengersProcessed => _totalPassengersProcessed;
+        public int MoneyPerPassenger => _moneyPerPassenger;
+
+        public void AddMoney(int amount)
+        {
+            if (amount < 0)
+            {
+                Debug.LogWarning($"EconomyController: Cannot add negative money: {amount}");
+                return;
+            }
+
+            _money += amount;
+            OnMoneyChanged?.Invoke(_money);
+        }
+
+        public void AddPassengers(int count)
+        {
+            if (count < 0)
+            {
+                Debug.LogWarning($"EconomyController: Cannot add negative passengers: {count}");
+                return;
+            }
+
+            _totalPassengersProcessed += count;
+            OnTotalPassengersProcessedChanged?.Invoke(_totalPassengersProcessed);
+        }
+
+        public void SetMoneyPerPassenger(int value)
+        {
+            if (value < 0)
+            {
+                Debug.LogWarning($"EconomyController: MoneyPerPassenger cannot be negative: {value}");
+                return;
+            }
+
+            _moneyPerPassenger = value;
+        }
+
+        public void Reset()
+        {
+            _money = 0;
+            _totalPassengersProcessed = 0;
+            _moneyPerPassenger = 1;
+            OnMoneyChanged?.Invoke(_money);
+            OnTotalPassengersProcessedChanged?.Invoke(_totalPassengersProcessed);
+        }
+    }
+}
