@@ -22,7 +22,7 @@ namespace IdleAirport.GameCore
         [SerializeField] private TextMeshProUGUI _aiTSAStatusText;
 
         [Header("Business Views")]
-        [SerializeField] private StoresManager _businessManager;
+        [SerializeField] private StoresManager _storesManager;
         [SerializeField] private StoresUIItemView[] _businessViews;
 
         private void Awake()
@@ -67,14 +67,14 @@ namespace IdleAirport.GameCore
 
         private void RegisterBusinessButtonHandlers()
         {
-            if (_businessManager == null || _businessViews == null) return;
+            if (_storesManager == null || _businessViews == null) return;
 
             for (int i = 0; i < _businessViews.Length; i++)
             {
                 if (_businessViews[i] == null) continue;
 
                 int index = i;
-                _businessViews[i].SetClickHandler(() => _businessManager.TryPurchaseBusiness(index));
+                _businessViews[i].SetClickHandler(() => _storesManager.TryPurchaseBusiness(index));
             }
         }
 
@@ -145,9 +145,9 @@ namespace IdleAirport.GameCore
 
         private void UpdateBusinessUI()
         {
-            if (_businessManager == null || _businessViews == null) return;
+            if (_storesManager == null || _businessViews == null) return;
 
-            Store[] businesses = _businessManager.Businesses;
+            Store[] businesses = _storesManager.Businesses;
             if (businesses == null) return;
 
             int count = Mathf.Min(businesses.Length, _businessViews.Length);
@@ -156,7 +156,7 @@ namespace IdleAirport.GameCore
             {
                 if (_businessViews[i] == null) continue;
 
-                _businessViews[i].SetData(businesses[i], _businessManager.CanPurchaseBusiness(i));
+                _businessViews[i].SetData(businesses[i], _storesManager.CanPurchaseBusiness(i));
             }
 
             if (_businessViews.Length > businesses.Length)

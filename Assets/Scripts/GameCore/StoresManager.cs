@@ -7,14 +7,14 @@ namespace IdleAirport.GameCore
     {
         [SerializeField] private EconomyController _economyController;
         [SerializeField] private PassengerProcessor _passengerProcessor;
-        [SerializeField] private Store[] _businesses;
+        [SerializeField] private Store[] _stores;
 
         private double _pendingBusinessIncome;
 
         public event Action OnBusinessesChanged;
 
-        public Store[] Businesses => _businesses;
-        public int BusinessCount => _businesses != null ? _businesses.Length : 0;
+        public Store[] Businesses => _stores;
+        public int BusinessCount => _stores != null ? _stores.Length : 0;
 
         private void Update()
         {
@@ -23,10 +23,10 @@ namespace IdleAirport.GameCore
             float pps = _passengerProcessor.PassengersPerSecond;
             if (pps <= 0f) return;
 
-            if (_businesses == null) return;
+            if (_stores == null) return;
 
             double totalRate = 0.0;
-            foreach (var business in _businesses)
+            foreach (var business in _stores)
             {
                 if (business.IsUnlocked && business.OwnedCount > 0)
                 {
@@ -48,19 +48,19 @@ namespace IdleAirport.GameCore
 
         public bool CanPurchaseBusiness(int index)
         {
-            if (_businesses == null) return false;
-            if (index < 0 || index >= _businesses.Length) return false;
+            if (_stores == null) return false;
+            if (index < 0 || index >= _stores.Length) return false;
 
-            Store business = _businesses[index];
+            Store business = _stores[index];
             return business.CanPurchase(_economyController.Money);
         }
 
         public bool TryPurchaseBusiness(int index)
         {
-            if (_businesses == null) return false;
-            if (index < 0 || index >= _businesses.Length) return false;
+            if (_stores == null) return false;
+            if (index < 0 || index >= _stores.Length) return false;
 
-            Store business = _businesses[index];
+            Store business = _stores[index];
             if (!business.CanPurchase(_economyController.Money)) return false;
 
             if (!_economyController.SpendMoney(business.CurrentCost)) return false;
@@ -72,9 +72,9 @@ namespace IdleAirport.GameCore
 
         public bool TryUnlockBusiness(int index)
         {
-            if (index < 0 || index >= _businesses.Length) return false;
+            if (index < 0 || index >= _stores.Length) return false;
 
-            Store business = _businesses[index];
+            Store business = _stores[index];
             if (business.IsUnlocked) return false;
 
             business.Unlock();
