@@ -21,7 +21,9 @@ namespace IdleAirport.GameCore
         [SerializeField] private Button _buyAITSButton;
         [SerializeField] private TextMeshProUGUI _aiTSAStatusText;
 
-        private bool _isInitialized;
+        [Header("Business Views")]
+        [SerializeField] private StoresManager _businessManager;
+        [SerializeField] private StoresUIItemView[] _businessViews;
 
         private void Awake()
         {
@@ -31,9 +33,15 @@ namespace IdleAirport.GameCore
         private void Start()
         {
             SubscribeToEvents();
+            RegisterBusinessButtonHandlers();
             UpdateAllTexts();
             UpdateUpgradeUI();
-            _isInitialized = true;
+            UpdateBusinessUI();
+        }
+
+        private void OnDestroy()
+        {
+            UnsubscribeFromEvents();
         }
 
         private void Update()
@@ -42,11 +50,6 @@ namespace IdleAirport.GameCore
             {
                 _ppsText.text = $"Passengers per second: {NumberFormatter.Format(_passengerProcessor.PassengersPerSecond, 1)}/s";
             }
-        }
-
-        private void OnDestroy()
-        {
-            UnsubscribeFromEvents();
         }
 
         public void OnScannerClicked()
@@ -60,6 +63,19 @@ namespace IdleAirport.GameCore
 
             _aiTSAScannerUpgrade.Purchase();
             UpdateUpgradeUI();
+        }
+
+        private void RegisterBusinessButtonHandlers()
+        {
+            if (_businessManager == null || _businessViews == null) return;
+
+            for (int i = 0; i < _businessViews.Length; i++)
+            {
+                if (_businessViews[i] == null) continue;
+
+                int index = i;
+                _businessViews[i].SetClickHandler(() => _businessManager.TryPurchaseBusiness(index));
+            }
         }
 
         private void SubscribeToEvents()
@@ -80,17 +96,18 @@ namespace IdleAirport.GameCore
             _economyController.OnMoneyChanged -= OnMoneyChangedForUpgrade;
         }
 
-        private void OnMoneyChangedForUpgrade(int money)
-        {
-            UpdateUpgradeUI();
-        }
-
-        private void OnMoneyChanged(int money)
+        private void OnMoneyChanged(double money)
         {
             if (_moneyText != null)
             {
                 _moneyText.text = NumberFormatter.Format(money);
             }
+        }
+
+        private void OnMoneyChangedForUpgrade(double money)
+        {
+            UpdateUpgradeUI();
+            UpdateBusinessUI();
         }
 
         private void OnPassengersChanged(int passengers)
@@ -123,6 +140,32 @@ namespace IdleAirport.GameCore
             if (_buyAITSButton != null)
             {
                 _buyAITSButton.interactable = _aiTSAScannerUpgrade.CanPurchase();
+            }
+        }
+
+        private void UpdateBusinessUI()
+        {
+            if (_businessManager == null || _businessViews == null) return;
+
+            Store[] businesses = _businessManager.Businesses;
+            if (businesses == null) return;
+
+            int count = Mathf.Min(businesses.Length, _businessViews.Length);
+
+            for (int i = 0; i < count; i++)
+            {
+                if (_businessViews[i] == null) continue;
+
+                _businessViews[i].SetData(businesses[i], _businessManager.CanPurchaseBusiness(i));
+            }
+
+            if (_businessViews.Length > businesses.Length)
+            {
+                for (int i = businesses.Length; i < _businessViews.Length; i++)
+                {
+                    if (_businessViews[i] != null)
+                        _businessViews[i].gameObject.SetActive(false);
+                }
             }
         }
 

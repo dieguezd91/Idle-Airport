@@ -5,18 +5,18 @@ namespace IdleAirport.GameCore
 {
     public sealed class EconomyController : MonoBehaviour
     {
-        public event Action<int> OnMoneyChanged;
+        public event Action<double> OnMoneyChanged;
         public event Action<int> OnTotalPassengersProcessedChanged;
 
-        [SerializeField] private int _money;
+        [SerializeField] private double _money;
         [SerializeField] private int _totalPassengersProcessed;
         [SerializeField] private int _moneyPerPassenger = 1;
 
-        public int Money => _money;
+        public double Money => _money;
         public int TotalPassengersProcessed => _totalPassengersProcessed;
         public int MoneyPerPassenger => _moneyPerPassenger;
 
-        public void AddMoney(int amount)
+        public void AddMoney(double amount)
         {
             if (amount < 0)
             {
@@ -26,6 +26,21 @@ namespace IdleAirport.GameCore
 
             _money += amount;
             OnMoneyChanged?.Invoke(_money);
+        }
+
+        public bool SpendMoney(double amount)
+        {
+            if (amount <= 0)
+            {
+                Debug.LogWarning($"EconomyController: SpendMoney requires a positive amount: {amount}");
+                return false;
+            }
+
+            if (_money < amount) return false;
+
+            _money -= amount;
+            OnMoneyChanged?.Invoke(_money);
+            return true;
         }
 
         public void AddPassengers(int count)

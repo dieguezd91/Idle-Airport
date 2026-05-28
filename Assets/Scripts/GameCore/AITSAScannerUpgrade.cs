@@ -39,12 +39,8 @@ namespace IdleAirport.GameCore
             }
 
             float cost = CurrentCost;
-            if (_economyController.Money < cost)
-            {
-                return;
-            }
+            if (!_economyController.SpendMoney(Mathf.RoundToInt(cost))) return;
 
-            _economyController.AddMoney(-Mathf.RoundToInt(cost));
             _ownedCount++;
             _passengerProcessor.AddPassengersPerSecond(_effectPerPurchase);
         }
