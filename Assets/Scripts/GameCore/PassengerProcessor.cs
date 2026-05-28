@@ -4,23 +4,30 @@ namespace IdleAirport.GameCore
 {
     public sealed class PassengerProcessor : MonoBehaviour
     {
+        [Header("References")]
         [SerializeField] private EconomyController _economyController;
-        [SerializeField] private QueueUIVisualController _queueVisual;
-        [SerializeField] private int _manualClickValue = 1;
+        [SerializeField] private PassengerQueueUIController _queue;
+        [SerializeField] private WaitingRoomUIController _waitingRoom;
+        [SerializeField] private ScannerStationUIController _manualScanner;
+        [SerializeField] private ScannerStationUIController _aiScanner;
 
+        [Header("Settings")]
+        [SerializeField] private int _manualClickValue = 1;
         [SerializeField] private float _passengersPerSecond;
         [SerializeField] private float _maxPendingPassengers = 10f;
         private float _passengerAccumulator;
 
         public int ManualClickValue => _manualClickValue;
         public float PassengersPerSecond => _passengersPerSecond;
-        public bool IsPassengerFlowBlocked => _queueVisual != null && _queueVisual.IsBlocked;
+        public bool IsPassengerFlowBlocked => _waitingRoom != null && !_waitingRoom.HasCapacity;
 
         private void Update()
         {
+            TryFeedManualScanner();
+
             if (_passengersPerSecond <= 0f) return;
             if (_economyController == null) return;
-            if (_queueVisual == null) return;
+            if (_aiScanner == null) return;
 
             _passengerAccumulator += _passengersPerSecond * Time.deltaTime;
             _passengerAccumulator = Mathf.Min(_passengerAccumulator, _maxPendingPassengers);
@@ -31,50 +38,57 @@ namespace IdleAirport.GameCore
             int processed = 0;
             for (int i = 0; i < requested; i++)
             {
-                if (_queueVisual.TryProcessFrontPassenger())
+                if (TryProcessOnePassenger(_aiScanner))
                     processed++;
                 else
                     break;
             }
 
             if (processed > 0)
-            {
                 _passengerAccumulator -= processed;
-                _economyController.AddPassengers(processed);
-                _economyController.AddMoney(processed * _economyController.MoneyPerPassenger);
-            }
         }
 
-        public void ProcessPassengers(int count)
+        private void TryFeedManualScanner()
         {
-            if (_economyController == null)
-            {
-                Debug.LogError("PassengerProcessor: EconomyController is not assigned!");
-                return;
-            }
+            if (_manualScanner == null || !_manualScanner.CanAcceptMore) return;
+            if (_queue == null || !_queue.HasPassengerReady) return;
 
-            if (_queueVisual == null || count <= 0) return;
+            PassengerUIVisual passenger;
+            if (!_queue.TryDequeuePassenger(out passenger)) return;
 
-            int processed = 0;
-            for (int i = 0; i < count; i++)
-            {
-                if (_queueVisual.TryProcessFrontPassenger())
-                    processed++;
-                else
-                    break;
-            }
+            _manualScanner.ProcessPassenger(passenger, _waitingRoom);
+            _queue.RefillBackSlotIfPossible();
+        }
 
-            if (processed > 0)
-            {
-                _economyController.AddPassengers(processed);
-                _economyController.AddMoney(processed * _economyController.MoneyPerPassenger);
-            }
+        private bool TryProcessOnePassenger(ScannerStationUIController scanner)
+        {
+            if (_economyController == null) return false;
+            if (_waitingRoom == null || !_waitingRoom.HasCapacity) return false;
+            if (scanner == null || scanner.IsBusy) return false;
+            if (_queue == null || !_queue.HasPassengerReady) return false;
+
+            PassengerUIVisual passenger;
+            if (!_queue.TryDequeuePassenger(out passenger)) return false;
+
+            scanner.ProcessPassenger(passenger, _waitingRoom);
+            _queue.RefillBackSlotIfPossible();
+
+            _economyController.AddPassengers(1);
+            _economyController.AddMoney(1 * _economyController.MoneyPerPassenger);
+
+            return true;
         }
 
         public void ProcessManualClick()
         {
-            if (_queueVisual != null && _queueVisual.IsBlocked) return;
-            ProcessPassengers(_manualClickValue);
+            if (_economyController == null) return;
+            if (_manualScanner == null) return;
+            if (_waitingRoom == null) return;
+
+            if (!_manualScanner.TryReleaseOneToWaitingRoom(_waitingRoom)) return;
+
+            _economyController.AddPassengers(1);
+            _economyController.AddMoney(1 * _economyController.MoneyPerPassenger);
         }
 
         public void SetEconomyController(EconomyController controller)
