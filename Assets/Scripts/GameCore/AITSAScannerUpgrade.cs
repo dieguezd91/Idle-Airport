@@ -42,6 +42,7 @@ namespace IdleAirport.GameCore
             if (!_economyController.SpendMoney(Mathf.RoundToInt(cost))) return;
 
             _ownedCount++;
+            _passengerProcessor.EnableAIScanner();
             _passengerProcessor.AddPassengersPerSecond(_effectPerPurchase);
         }
     }

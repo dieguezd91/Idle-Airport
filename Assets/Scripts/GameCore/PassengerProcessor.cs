@@ -96,6 +96,12 @@ namespace IdleAirport.GameCore
             _economyController = controller;
         }
 
+        public void EnableAIScanner()
+        {
+            if (_aiScanner != null)
+                _aiScanner.gameObject.SetActive(true);
+        }
+
         public void AddPassengersPerSecond(float amount)
         {
             _passengersPerSecond += amount;
