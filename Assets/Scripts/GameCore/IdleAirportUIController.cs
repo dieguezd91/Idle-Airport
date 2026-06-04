@@ -48,7 +48,7 @@ namespace IdleAirport.GameCore
         {
             if (_passengerProcessor != null && _ppsText != null)
             {
-                _ppsText.text = $"Passengers per second: {NumberFormatter.Format(_passengerProcessor.PassengersPerSecond, 1)}/s";
+                _ppsText.text = $"{NumberFormatter.Format(_passengerProcessor.PassengersPerSecond, 1)}/s";
             }
         }
 
@@ -114,7 +114,7 @@ namespace IdleAirport.GameCore
         {
             if (_passengersProcessedText != null)
             {
-                _passengersProcessedText.text = $"Number of passengers processed: {NumberFormatter.Format(passengers)}";
+                _passengersProcessedText.text = $"{NumberFormatter.Format(passengers)}";
             }
         }
 
