@@ -12,6 +12,7 @@ namespace IdleAirport.GameCore
         private double _pendingBusinessIncome;
 
         public event Action OnBusinessesChanged;
+        public event Action<int, Store> OnStorePurchased;
 
         public Store[] Businesses => _stores;
         public int BusinessCount => _stores != null ? _stores.Length : 0;
@@ -66,6 +67,7 @@ namespace IdleAirport.GameCore
             if (!_economyController.SpendMoney(business.CurrentCost)) return false;
 
             business.Purchase();
+            OnStorePurchased?.Invoke(index, business);
             OnBusinessesChanged?.Invoke();
             return true;
         }
