@@ -6687,7 +6687,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &800000195
 RectTransform:
   m_ObjectHideFlags: 0
@@ -9563,6 +9563,7 @@ MonoBehaviour:
   _aiTSAScannerUpgrade: {fileID: 1643821349}
   _buyAITSButton: {fileID: 28579219}
   _aiTSAStatusText: {fileID: 1342416934}
+  _totalShopIncomeText: {fileID: 800000193}
   _storesManager: {fileID: 1643821350}
   _businessViews:
   - {fileID: 512156364}
@@ -10729,7 +10730,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _areaSize: {x: 300, y: 750}
   _cellSize: 45
-  _maxPassengers: 40
+  _maxPassengers: 175
   _autoBoardPassengers: 1
   _boardingInterval: 5
   _passengersPerBoarding: 1

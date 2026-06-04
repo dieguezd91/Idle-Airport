@@ -17,27 +17,35 @@ namespace IdleAirport.GameCore
         public Store[] Businesses => _stores;
         public int BusinessCount => _stores != null ? _stores.Length : 0;
 
+        public double TotalIncomePerSecond
+        {
+            get
+            {
+                if (_stores == null) return 0.0;
+                double total = 0.0;
+                foreach (var business in _stores)
+                {
+                    if (business.OwnedCount > 0)
+                    {
+                        total += business.IncomePerPassenger * business.OwnedCount;
+                    }
+                }
+                return total;
+            }
+        }
+
         private void Update()
         {
-            if (_passengerProcessor == null || _economyController == null) return;
+            if (_economyController == null) return;
 
-            float pps = _passengerProcessor.PassengersPerSecond;
-            if (pps <= 0f) return;
+            if (_passengerProcessor != null && _passengerProcessor.IsPassengerFlowBlocked) return;
 
             if (_stores == null) return;
 
-            double totalRate = 0.0;
-            foreach (var business in _stores)
-            {
-                if (business.IsUnlocked && business.OwnedCount > 0)
-                {
-                    totalRate += business.IncomePerPassenger * business.OwnedCount;
-                }
-            }
-
+            double totalRate = TotalIncomePerSecond;
             if (totalRate <= 0.0) return;
 
-            _pendingBusinessIncome += pps * Time.deltaTime * totalRate;
+            _pendingBusinessIncome += totalRate * Time.deltaTime;
 
             if (_pendingBusinessIncome >= 1.0)
             {

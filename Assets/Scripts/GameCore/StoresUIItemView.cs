@@ -20,7 +20,7 @@ namespace IdleAirport.GameCore
             if (_statusText != null)
             {
                 _statusText.text = business.IsUnlocked
-                    ? $"Owned: {business.OwnedCount} | +{NumberFormatter.Format(business.IncomePerPassenger, 2)}/pax"
+                    ? $"Owned: {business.OwnedCount} | +{NumberFormatter.Format(business.IncomePerPassenger, 2)}/s"
                     : "Locked";
             }
 

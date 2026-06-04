@@ -21,6 +21,9 @@ namespace IdleAirport.GameCore
         [SerializeField] private Button _buyAITSButton;
         [SerializeField] private TextMeshProUGUI _aiTSAStatusText;
 
+        [Header("Shop Income")]
+        [SerializeField] private TextMeshProUGUI _totalShopIncomeText;
+
         [Header("Business Views")]
         [SerializeField] private StoresManager _storesManager;
         [SerializeField] private StoresUIItemView[] _businessViews;
@@ -50,6 +53,11 @@ namespace IdleAirport.GameCore
             {
                 _ppsText.text = $"{NumberFormatter.Format(_passengerProcessor.PassengersPerSecond, 1)}/s";
             }
+
+            if (_storesManager != null && _totalShopIncomeText != null)
+            {
+                _totalShopIncomeText.text = $"{NumberFormatter.Format(_storesManager.TotalIncomePerSecond, 2)}/s";
+            }
         }
 
         public void OnScannerClicked()
@@ -63,6 +71,11 @@ namespace IdleAirport.GameCore
 
             _aiTSAScannerUpgrade.Purchase();
             UpdateUpgradeUI();
+        }
+
+        private void OnStorePurchased(int index, Store store)
+        {
+            UpdateBusinessUI();
         }
 
         private void RegisterBusinessButtonHandlers()
@@ -85,6 +98,12 @@ namespace IdleAirport.GameCore
             _economyController.OnMoneyChanged += OnMoneyChanged;
             _economyController.OnTotalPassengersProcessedChanged += OnPassengersChanged;
             _economyController.OnMoneyChanged += OnMoneyChangedForUpgrade;
+
+            if (_storesManager != null)
+            {
+                _storesManager.OnStorePurchased += OnStorePurchased;
+                _storesManager.OnBusinessesChanged += UpdateBusinessUI;
+            }
         }
 
         private void UnsubscribeFromEvents()
@@ -94,6 +113,12 @@ namespace IdleAirport.GameCore
             _economyController.OnMoneyChanged -= OnMoneyChanged;
             _economyController.OnTotalPassengersProcessedChanged -= OnPassengersChanged;
             _economyController.OnMoneyChanged -= OnMoneyChangedForUpgrade;
+
+            if (_storesManager != null)
+            {
+                _storesManager.OnStorePurchased -= OnStorePurchased;
+                _storesManager.OnBusinessesChanged -= UpdateBusinessUI;
+            }
         }
 
         private void OnMoneyChanged(double money)
