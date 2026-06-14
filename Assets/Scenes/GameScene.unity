@@ -8195,6 +8195,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _economyController: {fileID: 17876993}
+  _storesManager: {fileID: 1643821350}
   _queue: {fileID: 3000000102}
   _waitingRoom: {fileID: 3000000142}
   _manualScanner: {fileID: 3000000242}
@@ -8745,7 +8746,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 35.607727}
+  m_AnchoredPosition: {x: 0, y: 35.607666}
   m_SizeDelta: {x: -20, y: 94.3923}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!1 &1424260773
@@ -9289,25 +9290,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _economyController: {fileID: 17876993}
-  _passengerProcessor: {fileID: 890721249}
   _stores:
   - _name: Coffee Store
     _description: A small kiosk near the gates.
-    _incomePerPassenger: 0.25
+    _incomePerPassenger: 1
     _baseCost: 25
     _costMultiplier: 1.15
     _ownedCount: 0
     _isUnlocked: 1
   - _name: Duty Free
     _description: Tax-free shopping for travelers.
-    _incomePerPassenger: 0.75
+    _incomePerPassenger: 5
     _baseCost: 50
     _costMultiplier: 1.15
     _ownedCount: 0
     _isUnlocked: 1
   - _name: VIP Lounge
     _description: Exclusive lounge for premium passengers.
-    _incomePerPassenger: 2
+    _incomePerPassenger: 10
     _baseCost: 100
     _costMultiplier: 1.15
     _ownedCount: 0
@@ -9563,12 +9563,14 @@ MonoBehaviour:
   _aiTSAScannerUpgrade: {fileID: 1643821349}
   _buyAITSButton: {fileID: 28579219}
   _aiTSAStatusText: {fileID: 1342416934}
-  _totalShopIncomeText: {fileID: 800000193}
+  _basePassengerIncomeText: {fileID: 800000181}
+  _shopBonusIncomeText: {fileID: 800000189}
+  _totalPassengerIncomeText: {fileID: 800000193}
   _storesManager: {fileID: 1643821350}
-  _businessViews:
+  _storeViews:
   - {fileID: 512156364}
-  - {fileID: 1424260775}
   - {fileID: 1906513051}
+  - {fileID: 1424260775}
 --- !u!1 &1789571185
 GameObject:
   m_ObjectHideFlags: 0

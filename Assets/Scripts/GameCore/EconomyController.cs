@@ -16,6 +16,23 @@ namespace IdleAirport.GameCore
         public int TotalPassengersProcessed => _totalPassengersProcessed;
         public int MoneyPerPassenger => _moneyPerPassenger;
 
+        public double GetBasePassengerIncome()
+        {
+            return _moneyPerPassenger;
+        }
+
+        public void RewardProcessedPassenger(double totalReward)
+        {
+            if (totalReward < 0)
+            {
+                Debug.LogWarning($"EconomyController: Processed passenger reward cannot be negative: {totalReward}");
+                return;
+            }
+
+            AddPassengers(1);
+            AddMoney(totalReward);
+        }
+
         public void AddMoney(double amount)
         {
             if (amount < 0)

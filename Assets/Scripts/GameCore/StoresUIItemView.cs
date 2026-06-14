@@ -12,27 +12,29 @@ namespace IdleAirport.GameCore
         [SerializeField] private TextMeshProUGUI _costText;
         [SerializeField] private Button _buyButton;
 
-        public void SetData(Store business, bool canPurchase)
+        public void SetData(Store store, bool canPurchase)
         {
             if (_nameText != null)
-                _nameText.text = business.Name;
+                _nameText.text = store.Name;
 
             if (_statusText != null)
             {
-                _statusText.text = business.IsUnlocked
-                    ? $"Owned: {business.OwnedCount} | +{NumberFormatter.Format(business.IncomePerPassenger, 2)}/s"
-                    : "Locked";
+                _statusText.text = !store.IsUnlocked
+                    ? "Unavailable"
+                    : store.OwnedCount > 0
+                        ? $"Built L{store.OwnedCount} | +${NumberFormatter.Format(store.IncomePerPassenger, 2)}/passenger each"
+                        : $"Available | Not built | +${NumberFormatter.Format(store.IncomePerPassenger, 2)}/passenger";
             }
 
             if (_costText != null)
             {
-                _costText.text = business.IsUnlocked
-                    ? $"Cost: ${NumberFormatter.Format(business.CurrentCost, 0)}"
+                _costText.text = store.IsUnlocked
+                    ? $"Cost: ${NumberFormatter.Format(store.CurrentCost, 0)}"
                     : string.Empty;
             }
 
             if (_buyButton != null)
-                _buyButton.interactable = business.IsUnlocked && canPurchase;
+                _buyButton.interactable = store.IsUnlocked && canPurchase;
         }
 
         public void SetClickHandler(UnityAction callback)

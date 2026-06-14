@@ -6,6 +6,7 @@ namespace IdleAirport.GameCore
     {
         [Header("References")]
         [SerializeField] private EconomyController _economyController;
+        [SerializeField] private StoresManager _storesManager;
         [SerializeField] private PassengerQueueUIController _queue;
         [SerializeField] private WaitingRoomUIController _waitingRoom;
         [SerializeField] private ScannerStationUIController _manualScanner;
@@ -25,6 +26,16 @@ namespace IdleAirport.GameCore
             _manualScanner.HeldCount > 0 &&
             _waitingRoom != null &&
             _waitingRoom.HasPhysicalCapacity;
+
+        private void Awake()
+        {
+            EnsureStoresManagerReference();
+        }
+
+        private void OnValidate()
+        {
+            EnsureStoresManagerReference(logWarning: false);
+        }
 
         private void Update()
         {
@@ -180,8 +191,36 @@ namespace IdleAirport.GameCore
         {
             if (_economyController == null) return;
 
-            _economyController.AddPassengers(1);
-            _economyController.AddMoney(1 * _economyController.MoneyPerPassenger);
+            double totalReward = GetTotalPassengerReward();
+            _economyController.RewardProcessedPassenger(totalReward);
+        }
+
+        public double GetTotalPassengerReward()
+        {
+            double baseIncome = _economyController != null
+                ? _economyController.GetBasePassengerIncome()
+                : 0.0;
+            double shopsBonus = _storesManager != null
+                ? _storesManager.GetPassengerIncomeBonus()
+                : 0.0;
+
+            return baseIncome + shopsBonus;
+        }
+
+        public double GetShopsPassengerIncomeBonus()
+        {
+            return _storesManager != null ? _storesManager.GetPassengerIncomeBonus() : 0.0;
+        }
+
+        private void EnsureStoresManagerReference(bool logWarning = true)
+        {
+            if (_storesManager != null) return;
+
+            _storesManager = FindFirstObjectByType<StoresManager>();
+            if (_storesManager == null && logWarning)
+            {
+                Debug.LogWarning("PassengerProcessor: StoresManager is not assigned, shop passenger bonus will not be applied.", this);
+            }
         }
 
         private void ReleaseManualReservations()

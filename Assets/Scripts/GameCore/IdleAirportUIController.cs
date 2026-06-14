@@ -21,12 +21,14 @@ namespace IdleAirport.GameCore
         [SerializeField] private Button _buyAITSButton;
         [SerializeField] private TextMeshProUGUI _aiTSAStatusText;
 
-        [Header("Shop Income")]
-        [SerializeField] private TextMeshProUGUI _totalShopIncomeText;
+        [Header("Passenger Income UI")]
+        [SerializeField] private TextMeshProUGUI _basePassengerIncomeText;
+        [SerializeField] private TextMeshProUGUI _shopBonusIncomeText;
+        [SerializeField] private TextMeshProUGUI _totalPassengerIncomeText;
 
-        [Header("Business Views")]
+        [Header("Store Views")]
         [SerializeField] private StoresManager _storesManager;
-        [SerializeField] private StoresUIItemView[] _businessViews;
+        [SerializeField] private StoresUIItemView[] _storeViews;
 
         private void Awake()
         {
@@ -36,10 +38,10 @@ namespace IdleAirport.GameCore
         private void Start()
         {
             SubscribeToEvents();
-            RegisterBusinessButtonHandlers();
+            RegisterStoreButtonHandlers();
             UpdateAllTexts();
             UpdateUpgradeUI();
-            UpdateBusinessUI();
+            UpdateStoreUI();
         }
 
         private void OnDestroy()
@@ -59,10 +61,7 @@ namespace IdleAirport.GameCore
                 _scannerButton.interactable = _passengerProcessor.CanProcessManualClick;
             }
 
-            if (_storesManager != null && _totalShopIncomeText != null)
-            {
-                _totalShopIncomeText.text = $"{NumberFormatter.Format(_storesManager.TotalIncomePerSecond, 2)}/s";
-            }
+            UpdatePassengerIncomeTexts();
         }
 
         public void OnScannerClicked()
@@ -80,19 +79,19 @@ namespace IdleAirport.GameCore
 
         private void OnStorePurchased(int index, Store store)
         {
-            UpdateBusinessUI();
+            UpdateStoreUI();
         }
 
-        private void RegisterBusinessButtonHandlers()
+        private void RegisterStoreButtonHandlers()
         {
-            if (_storesManager == null || _businessViews == null) return;
+            if (_storesManager == null || _storeViews == null) return;
 
-            for (int i = 0; i < _businessViews.Length; i++)
+            for (int i = 0; i < _storeViews.Length; i++)
             {
-                if (_businessViews[i] == null) continue;
+                if (_storeViews[i] == null) continue;
 
                 int index = i;
-                _businessViews[i].SetClickHandler(() => _storesManager.TryPurchaseBusiness(index));
+                _storeViews[i].SetClickHandler(() => _storesManager.TryPurchaseStore(index));
             }
         }
 
@@ -107,7 +106,7 @@ namespace IdleAirport.GameCore
             if (_storesManager != null)
             {
                 _storesManager.OnStorePurchased += OnStorePurchased;
-                _storesManager.OnBusinessesChanged += UpdateBusinessUI;
+                _storesManager.OnBusinessesChanged += UpdateStoreUI;
             }
         }
 
@@ -122,7 +121,7 @@ namespace IdleAirport.GameCore
             if (_storesManager != null)
             {
                 _storesManager.OnStorePurchased -= OnStorePurchased;
-                _storesManager.OnBusinessesChanged -= UpdateBusinessUI;
+                _storesManager.OnBusinessesChanged -= UpdateStoreUI;
             }
         }
 
@@ -137,7 +136,7 @@ namespace IdleAirport.GameCore
         private void OnMoneyChangedForUpgrade(double money)
         {
             UpdateUpgradeUI();
-            UpdateBusinessUI();
+            UpdateStoreUI();
         }
 
         private void OnPassengersChanged(int passengers)
@@ -154,6 +153,25 @@ namespace IdleAirport.GameCore
 
             OnMoneyChanged(_economyController.Money);
             OnPassengersChanged(_economyController.TotalPassengersProcessed);
+            UpdatePassengerIncomeTexts();
+        }
+
+        private void UpdatePassengerIncomeTexts()
+        {
+            double baseIncome = _economyController != null ? _economyController.GetBasePassengerIncome() : 0.0;
+            double shopsBonus = _storesManager != null ? _storesManager.GetPassengerIncomeBonus() : 0.0;
+            double totalIncome = _passengerProcessor != null
+                ? _passengerProcessor.GetTotalPassengerReward()
+                : baseIncome + shopsBonus;
+
+            if (_basePassengerIncomeText != null)
+                _basePassengerIncomeText.text = $"Base/passenger: ${NumberFormatter.Format(baseIncome, 2)}";
+
+            if (_shopBonusIncomeText != null)
+                _shopBonusIncomeText.text = $"Shops bonus/passenger: ${NumberFormatter.Format(shopsBonus, 2)}";
+
+            if (_totalPassengerIncomeText != null)
+                _totalPassengerIncomeText.text = $"Total/passenger: ${NumberFormatter.Format(totalIncome, 2)}";
         }
 
         private void UpdateUpgradeUI()
@@ -173,30 +191,32 @@ namespace IdleAirport.GameCore
             }
         }
 
-        private void UpdateBusinessUI()
+        private void UpdateStoreUI()
         {
-            if (_storesManager == null || _businessViews == null) return;
+            if (_storesManager == null || _storeViews == null) return;
 
-            Store[] businesses = _storesManager.Businesses;
-            if (businesses == null) return;
+            Store[] stores = _storesManager.Stores;
+            if (stores == null) return;
 
-            int count = Mathf.Min(businesses.Length, _businessViews.Length);
+            int count = Mathf.Min(stores.Length, _storeViews.Length);
 
             for (int i = 0; i < count; i++)
             {
-                if (_businessViews[i] == null) continue;
+                if (_storeViews[i] == null) continue;
 
-                _businessViews[i].SetData(businesses[i], _storesManager.CanPurchaseBusiness(i));
+                _storeViews[i].SetData(stores[i], _storesManager.CanPurchaseStore(i));
             }
 
-            if (_businessViews.Length > businesses.Length)
+            if (_storeViews.Length > stores.Length)
             {
-                for (int i = businesses.Length; i < _businessViews.Length; i++)
+                for (int i = stores.Length; i < _storeViews.Length; i++)
                 {
-                    if (_businessViews[i] != null)
-                        _businessViews[i].gameObject.SetActive(false);
+                    if (_storeViews[i] != null)
+                        _storeViews[i].gameObject.SetActive(false);
                 }
             }
+
+            UpdatePassengerIncomeTexts();
         }
 
         private void ValidateReferences()

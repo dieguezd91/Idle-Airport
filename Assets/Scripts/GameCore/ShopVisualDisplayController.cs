@@ -14,7 +14,7 @@ namespace IdleAirport.GameCore
         {
             if (!ValidateReferences()) return;
 
-            _shopVisuals = new ShopVisualItemView[_storesManager.BusinessCount];
+            _shopVisuals = new ShopVisualItemView[_storesManager.StoreCount];
             _storesManager.OnStorePurchased += HandleStorePurchased;
             SyncFromCurrentState();
         }
@@ -32,14 +32,14 @@ namespace IdleAirport.GameCore
 
         private void SyncFromCurrentState()
         {
-            Store[] businesses = _storesManager.Businesses;
-            if (businesses == null) return;
+            Store[] stores = _storesManager.Stores;
+            if (stores == null) return;
 
-            for (int i = 0; i < businesses.Length; i++)
+            for (int i = 0; i < stores.Length; i++)
             {
-                if (businesses[i].OwnedCount > 0)
+                if (stores[i].OwnedCount > 0)
                 {
-                    CreateOrUpdateVisual(i, businesses[i].Name, businesses[i].OwnedCount);
+                    CreateOrUpdateVisual(i, stores[i].Name, stores[i].OwnedCount);
                 }
             }
         }
