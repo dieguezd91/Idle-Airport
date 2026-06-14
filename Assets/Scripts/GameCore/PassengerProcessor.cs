@@ -43,6 +43,7 @@ namespace IdleAirport.GameCore
         public bool CanManualScan => EvaluateCanManualScan(out _);
         public bool CanProcessManualClick => CanManualScan;
         public ManualScanFailureReason LastManualScanFailureReason => _lastManualScanFailureReason;
+        public WaitingRoomUIController WaitingRoom => _waitingRoom;
 
         private void Awake()
         {
@@ -122,6 +123,12 @@ namespace IdleAirport.GameCore
             if (_waitingRoom == null)
             {
                 _lastManualScanFailureReason = ManualScanFailureReason.MissingWaitingRoom;
+                return false;
+            }
+
+            if (!_waitingRoom.HasReservableCapacity)
+            {
+                _lastManualScanFailureReason = ManualScanFailureReason.NoReservableCapacity;
                 return false;
             }
 

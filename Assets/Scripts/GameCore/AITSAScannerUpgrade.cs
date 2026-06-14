@@ -2,6 +2,16 @@ using UnityEngine;
 
 namespace IdleAirport.GameCore
 {
+    public enum AITSAUpgradePurchaseResult
+    {
+        SuccessFirstPurchase,
+        SuccessUpgrade,
+        MissingEconomy,
+        MissingPassengerProcessor,
+        InsufficientFunds,
+        SpendFailed
+    }
+
     public sealed class AITSAScannerUpgrade : MonoBehaviour
     {
         [Header("References")]
@@ -14,6 +24,8 @@ namespace IdleAirport.GameCore
         [SerializeField] private float _baseProcessingDuration = 1.5f;
         [SerializeField] private float _processingDurationMultiplierPerLevel = 0.9f;
         [SerializeField] private float _minimumProcessingDuration = 0.35f;
+
+        public event System.Action<AITSAUpgradePurchaseResult> OnPurchaseAttempted;
 
         public float CurrentCost => _baseCost * Mathf.Pow(_costMultiplier, OwnedCount);
         public int OwnedCount => _ownedCount;
@@ -35,25 +47,43 @@ namespace IdleAirport.GameCore
             return _economyController.Money >= CurrentCost;
         }
 
-        public void Purchase()
+        public AITSAUpgradePurchaseResult Purchase()
         {
             if (_economyController == null)
             {
                 Debug.LogError("AITSAScannerUpgrade: EconomyController is not assigned!");
-                return;
+                OnPurchaseAttempted?.Invoke(AITSAUpgradePurchaseResult.MissingEconomy);
+                return AITSAUpgradePurchaseResult.MissingEconomy;
             }
 
             if (_passengerProcessor == null)
             {
                 Debug.LogError("AITSAScannerUpgrade: PassengerProcessor is not assigned!");
-                return;
+                OnPurchaseAttempted?.Invoke(AITSAUpgradePurchaseResult.MissingPassengerProcessor);
+                return AITSAUpgradePurchaseResult.MissingPassengerProcessor;
             }
 
             float cost = CurrentCost;
-            if (!_economyController.SpendMoney(Mathf.RoundToInt(cost))) return;
+            if (_economyController.Money < cost)
+            {
+                OnPurchaseAttempted?.Invoke(AITSAUpgradePurchaseResult.InsufficientFunds);
+                return AITSAUpgradePurchaseResult.InsufficientFunds;
+            }
 
+            if (!_economyController.SpendMoney(Mathf.RoundToInt(cost)))
+            {
+                OnPurchaseAttempted?.Invoke(AITSAUpgradePurchaseResult.SpendFailed);
+                return AITSAUpgradePurchaseResult.SpendFailed;
+            }
+
+            bool wasInactive = _ownedCount == 0;
             _ownedCount++;
             ApplyCurrentUpgradeState();
+            AITSAUpgradePurchaseResult result = wasInactive
+                ? AITSAUpgradePurchaseResult.SuccessFirstPurchase
+                : AITSAUpgradePurchaseResult.SuccessUpgrade;
+            OnPurchaseAttempted?.Invoke(result);
+            return result;
         }
 
         private void ApplyCurrentUpgradeState()

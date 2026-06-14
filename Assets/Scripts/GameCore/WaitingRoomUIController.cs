@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 namespace IdleAirport.GameCore
@@ -8,6 +9,8 @@ namespace IdleAirport.GameCore
         [Header("Settings")]
         [SerializeField] private Vector2 _areaSize = new Vector2(400f, 200f);
         [SerializeField] private float _cellSize = 45f;
+        [SerializeField] private int _columns = 6;
+        [SerializeField] private int _rows = 16;
         [SerializeField] private int _maxPassengers = 15;
 
         [Header("Auto Boarding")]
@@ -20,16 +23,29 @@ namespace IdleAirport.GameCore
         private int _reservedSlots;
         private float _boardingTimer;
 
+        public event Action<int, int, int> OnOccupancyChanged;
+
+        public int VisualCapacity => Mathf.Max(0, _columns * _rows);
+        public int Capacity => _maxPassengers > 0 ? Mathf.Min(_maxPassengers, VisualCapacity) : VisualCapacity;
+
         public bool HasCapacity => HasReservableCapacity;
-        public bool HasPhysicalCapacity => _passengers.Count < _maxPassengers;
-        public bool HasReservableCapacity => _passengers.Count + _reservedSlots < _maxPassengers;
+        public bool HasPhysicalCapacity => _passengers.Count < Capacity;
+        public bool HasReservableCapacity => _passengers.Count + _reservedSlots < Capacity;
         public int CurrentCount => _passengers.Count;
-        public int Capacity => _maxPassengers;
         public int ReservedCount => _reservedSlots;
 
         private void Awake()
         {
             _container = GetComponent<RectTransform>();
+            ValidateCapacityConfiguration();
+            NotifyOccupancyChanged();
+        }
+
+        private void OnValidate()
+        {
+            _columns = Mathf.Max(1, _columns);
+            _rows = Mathf.Max(1, _rows);
+            _maxPassengers = Mathf.Max(0, _maxPassengers);
         }
 
         private void Update()
@@ -48,21 +64,25 @@ namespace IdleAirport.GameCore
 
         public bool TryReceivePassenger(PassengerUIVisual passenger)
         {
+            if (passenger == null) return false;
             if (!HasPhysicalCapacity) return false;
 
             passenger.transform.SetParent(_container, true);
             passenger.MoveTo(CalculatePosition(_passengers.Count));
             _passengers.Add(passenger);
+            NotifyOccupancyChanged();
             return true;
         }
 
         public bool TryReceivePassengerImmediate(PassengerUIVisual passenger)
         {
+            if (passenger == null) return false;
             if (!HasPhysicalCapacity) return false;
 
             passenger.transform.SetParent(_container, true);
             passenger.SetPositionImmediate(CalculatePosition(_passengers.Count));
             _passengers.Add(passenger);
+            NotifyOccupancyChanged();
             return true;
         }
 
@@ -71,6 +91,7 @@ namespace IdleAirport.GameCore
             if (!HasReservableCapacity) return false;
 
             _reservedSlots++;
+            NotifyOccupancyChanged();
             return true;
         }
 
@@ -83,6 +104,7 @@ namespace IdleAirport.GameCore
             }
 
             _reservedSlots--;
+            NotifyOccupancyChanged();
         }
 
         public bool TryReceivePassengerWithReservation(PassengerUIVisual passenger)
@@ -112,6 +134,7 @@ namespace IdleAirport.GameCore
                 p.Recycle();
             }
             ReapplyGridPositions();
+            NotifyOccupancyChanged();
         }
 
         private void ReapplyGridPositions()
@@ -122,17 +145,31 @@ namespace IdleAirport.GameCore
 
         private Vector2 CalculatePosition(int index)
         {
-            int cols = Mathf.Max(1, Mathf.FloorToInt(_areaSize.x / _cellSize));
-            int row = index / cols;
-            int col = index % cols;
+            int col = index % _columns;
+            int row = index / _columns;
 
-            float totalWidth = (cols - 1) * _cellSize;
+            float totalWidth = (_columns - 1) * _cellSize;
             float startX = -totalWidth * 0.5f;
             float startY = (_areaSize.y - _cellSize) * 0.5f;
 
             return new Vector2(
                 startX + col * _cellSize,
                 startY - row * _cellSize);
+        }
+
+        private void ValidateCapacityConfiguration()
+        {
+            if (_maxPassengers > VisualCapacity)
+            {
+                Debug.LogWarning(
+                    $"WaitingRoomUIController: _maxPassengers ({_maxPassengers}) exceeds visual capacity ({VisualCapacity}). " +
+                    "Capacity has been clamped to the visual limit.", this);
+            }
+        }
+
+        private void NotifyOccupancyChanged()
+        {
+            OnOccupancyChanged?.Invoke(_passengers.Count, _reservedSlots, Capacity);
         }
     }
 }

@@ -27,7 +27,7 @@ namespace IdleAirport.GameCore
 
         private void HandleStorePurchased(int index, Store store)
         {
-            CreateOrUpdateVisual(index, store.Name, store.OwnedCount);
+            CreateOrUpdateVisual(index, store);
         }
 
         private void SyncFromCurrentState()
@@ -39,22 +39,22 @@ namespace IdleAirport.GameCore
             {
                 if (stores[i].OwnedCount > 0)
                 {
-                    CreateOrUpdateVisual(i, stores[i].Name, stores[i].OwnedCount);
+                    CreateOrUpdateVisual(i, stores[i]);
                 }
             }
         }
 
-        private void CreateOrUpdateVisual(int index, string name, int ownedCount)
+        private void CreateOrUpdateVisual(int index, Store store)
         {
             if (_shopVisuals[index] == null)
             {
                 ShopVisualItemView visual = Instantiate(_itemTemplate, _builtContainer);
-                visual.name = $"ShopItem_{name}";
+                visual.name = $"ShopItem_{store.Name}";
                 visual.gameObject.SetActive(true);
                 _shopVisuals[index] = visual;
             }
 
-            _shopVisuals[index].SetData(name, ownedCount);
+            _shopVisuals[index].SetData(store.Name, store.OwnedCount, store.IncomePerPassenger);
         }
 
         private bool ValidateReferences()

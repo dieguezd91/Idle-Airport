@@ -11,6 +11,9 @@ namespace IdleAirport.GameCore
         [SerializeField] private TextMeshProUGUI _statusText;
         [SerializeField] private TextMeshProUGUI _costText;
         [SerializeField] private Button _buyButton;
+        [SerializeField] private Image _buttonBackground;
+        [SerializeField] private Color _availableButtonColor = new(0.2f, 0.55f, 0.25f, 1f);
+        [SerializeField] private Color _disabledButtonColor = new(0.3f, 0.3f, 0.3f, 1f);
 
         public void SetData(Store store, bool canPurchase)
         {
@@ -29,12 +32,21 @@ namespace IdleAirport.GameCore
             if (_costText != null)
             {
                 _costText.text = store.IsUnlocked
-                    ? $"Cost: ${NumberFormatter.Format(store.CurrentCost, 0)}"
+                    ? canPurchase
+                        ? $"Buy: ${NumberFormatter.Format(store.CurrentCost, 0)}"
+                        : $"Need: ${NumberFormatter.Format(store.CurrentCost, 0)}"
                     : string.Empty;
             }
 
             if (_buyButton != null)
                 _buyButton.interactable = store.IsUnlocked && canPurchase;
+
+            if (_buttonBackground != null)
+            {
+                _buttonBackground.color = store.IsUnlocked && canPurchase
+                    ? _availableButtonColor
+                    : _disabledButtonColor;
+            }
         }
 
         public void SetClickHandler(UnityAction callback)

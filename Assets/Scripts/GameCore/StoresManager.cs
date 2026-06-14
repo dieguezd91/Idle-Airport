@@ -3,6 +3,16 @@ using UnityEngine;
 
 namespace IdleAirport.GameCore
 {
+    public enum StorePurchaseFailureReason
+    {
+        None,
+        InvalidIndex,
+        MissingEconomy,
+        Locked,
+        InsufficientFunds,
+        SpendFailed
+    }
+
     public sealed class StoresManager : MonoBehaviour
     {
         [SerializeField] private EconomyController _economyController;
@@ -10,6 +20,7 @@ namespace IdleAirport.GameCore
 
         public event Action OnBusinessesChanged;
         public event Action<int, Store> OnStorePurchased;
+        public event Action<StorePurchaseFailureReason> OnStorePurchaseFailed;
 
         public Store[] Stores => _stores;
         public int StoreCount => _stores != null ? _stores.Length : 0;
@@ -44,13 +55,36 @@ namespace IdleAirport.GameCore
 
         public bool TryPurchaseStore(int index)
         {
-            if (_stores == null) return false;
-            if (index < 0 || index >= _stores.Length) return false;
+            if (_stores == null || index < 0 || index >= _stores.Length)
+            {
+                OnStorePurchaseFailed?.Invoke(StorePurchaseFailureReason.InvalidIndex);
+                return false;
+            }
+
+            if (_economyController == null)
+            {
+                OnStorePurchaseFailed?.Invoke(StorePurchaseFailureReason.MissingEconomy);
+                return false;
+            }
 
             Store store = _stores[index];
-            if (!store.CanPurchase(_economyController.Money)) return false;
+            if (!store.IsUnlocked)
+            {
+                OnStorePurchaseFailed?.Invoke(StorePurchaseFailureReason.Locked);
+                return false;
+            }
 
-            if (!_economyController.SpendMoney(store.CurrentCost)) return false;
+            if (_economyController.Money < store.CurrentCost)
+            {
+                OnStorePurchaseFailed?.Invoke(StorePurchaseFailureReason.InsufficientFunds);
+                return false;
+            }
+
+            if (!_economyController.SpendMoney(store.CurrentCost))
+            {
+                OnStorePurchaseFailed?.Invoke(StorePurchaseFailureReason.SpendFailed);
+                return false;
+            }
 
             store.Purchase();
             OnStorePurchased?.Invoke(index, store);
