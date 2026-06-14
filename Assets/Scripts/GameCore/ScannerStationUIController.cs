@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 namespace IdleAirport.GameCore
@@ -17,55 +18,86 @@ namespace IdleAirport.GameCore
         [SerializeField] private bool _isAutoScanner;
 
         private readonly List<PassengerUIVisual> _heldPassengers = new();
+        private PassengerUIVisual _activeAutoPassenger;
         private bool _isBusy;
 
         public bool IsBusy => _isAutoScanner && _isBusy;
         public int HeldCount => _heldPassengers.Count;
         public bool CanAcceptMore => _isAutoScanner || _heldPassengers.Count < _maxHeldCount;
 
-        public void ProcessPassenger(PassengerUIVisual passenger, WaitingRoomUIController waitingRoom)
+        public bool TryHoldPassenger(PassengerUIVisual passenger)
         {
-            if (passenger == null) return;
+            if (passenger == null) return false;
+            if (_isAutoScanner) return false;
+            if (_heldPassengers.Count >= _maxHeldCount) return false;
 
-            if (_isAutoScanner)
-            {
-                if (waitingRoom == null) return;
-                if (!waitingRoom.HasCapacity) return;
-                StartCoroutine(AutoProcessRoutine(passenger, waitingRoom));
-            }
-            else
-            {
-                passenger.transform.SetParent(transform, true);
-                passenger.MoveTo(_scannerPoint.anchoredPosition + new Vector2(0, -_heldPassengers.Count * 45f));
-                _heldPassengers.Add(passenger);
-            }
+            passenger.transform.SetParent(transform, true);
+            passenger.MoveTo(_scannerPoint.anchoredPosition + new Vector2(0, -_heldPassengers.Count * 45f));
+            _heldPassengers.Add(passenger);
+            return true;
         }
 
-        public bool TryReleaseOneToWaitingRoom(WaitingRoomUIController waitingRoom)
+        public bool TryReleaseOneHeldPassenger(out PassengerUIVisual passenger)
         {
-            if (waitingRoom == null) return false;
-            if (_heldPassengers.Count == 0) return false;
-            if (!waitingRoom.HasCapacity) return false;
+            if (_heldPassengers.Count == 0)
+            {
+                passenger = null;
+                return false;
+            }
 
-            PassengerUIVisual passenger = _heldPassengers[0];
+            passenger = _heldPassengers[0];
             _heldPassengers.RemoveAt(0);
 
             for (int i = 0; i < _heldPassengers.Count; i++)
                 _heldPassengers[i].MoveTo(_scannerPoint.anchoredPosition + new Vector2(0, -(i + 1) * 45f));
 
-            return waitingRoom.TryReceivePassenger(passenger);
+            return true;
         }
 
-        private IEnumerator AutoProcessRoutine(PassengerUIVisual passenger, WaitingRoomUIController waitingRoom)
+        public bool TryStartAutoProcessing(PassengerUIVisual passenger, Action<PassengerUIVisual> onCompleted)
+        {
+            if (passenger == null) return false;
+            if (!_isAutoScanner || _isBusy) return false;
+
+            StartCoroutine(AutoProcessRoutine(passenger, onCompleted));
+            return true;
+        }
+
+        public int RecycleHeldPassengers()
+        {
+            int count = _heldPassengers.Count;
+
+            for (int i = 0; i < _heldPassengers.Count; i++)
+                _heldPassengers[i].Recycle();
+
+            _heldPassengers.Clear();
+            return count;
+        }
+
+        public bool CancelAutoProcessing()
+        {
+            if (!_isAutoScanner || !_isBusy || _activeAutoPassenger == null) return false;
+
+            StopAllCoroutines();
+            _activeAutoPassenger.Recycle();
+            _activeAutoPassenger = null;
+            _isBusy = false;
+            return true;
+        }
+
+        private IEnumerator AutoProcessRoutine(PassengerUIVisual passenger, Action<PassengerUIVisual> onCompleted)
         {
             _isBusy = true;
+            _activeAutoPassenger = passenger;
 
             passenger.transform.SetParent(transform, true);
             passenger.MoveTo(_scannerPoint.anchoredPosition);
 
             yield return new WaitForSeconds(_processingDuration);
 
-            waitingRoom.TryReceivePassenger(passenger);
+            onCompleted?.Invoke(passenger);
+            if (_activeAutoPassenger == passenger)
+                _activeAutoPassenger = null;
             _isBusy = false;
         }
     }

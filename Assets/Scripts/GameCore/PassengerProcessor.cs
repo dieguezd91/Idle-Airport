@@ -19,7 +19,12 @@ namespace IdleAirport.GameCore
 
         public int ManualClickValue => _manualClickValue;
         public float PassengersPerSecond => _passengersPerSecond;
-        public bool IsPassengerFlowBlocked => _waitingRoom != null && !_waitingRoom.HasCapacity;
+        public bool IsPassengerFlowBlocked => _waitingRoom != null && !_waitingRoom.HasReservableCapacity;
+        public bool CanProcessManualClick =>
+            _manualScanner != null &&
+            _manualScanner.HeldCount > 0 &&
+            _waitingRoom != null &&
+            _waitingRoom.HasPhysicalCapacity;
 
         private void Update()
         {
@@ -48,47 +53,67 @@ namespace IdleAirport.GameCore
                 _passengerAccumulator -= processed;
         }
 
+        private void OnDisable()
+        {
+            ReleaseManualReservations();
+            CancelAutoProcessingReservation();
+        }
+
         private void TryFeedManualScanner()
         {
             if (_manualScanner == null || !_manualScanner.CanAcceptMore) return;
             if (_queue == null || !_queue.HasPassengerReady) return;
+            if (_waitingRoom == null || !_waitingRoom.TryReserveSlot()) return;
 
             PassengerUIVisual passenger;
-            if (!_queue.TryDequeuePassenger(out passenger)) return;
+            if (!_queue.TryDequeuePassenger(out passenger))
+            {
+                _waitingRoom.ReleaseReservedSlot();
+                return;
+            }
 
-            _manualScanner.ProcessPassenger(passenger, _waitingRoom);
+            if (!_manualScanner.TryHoldPassenger(passenger))
+            {
+                _waitingRoom.ReleaseReservedSlot();
+                return;
+            }
+
             _queue.RefillBackSlotIfPossible();
         }
 
         private bool TryProcessOnePassenger(ScannerStationUIController scanner)
         {
-            if (_economyController == null) return false;
-            if (_waitingRoom == null || !_waitingRoom.HasCapacity) return false;
             if (scanner == null || scanner.IsBusy) return false;
             if (_queue == null || !_queue.HasPassengerReady) return false;
+            if (_waitingRoom == null || !_waitingRoom.TryReserveSlot()) return false;
 
             PassengerUIVisual passenger;
-            if (!_queue.TryDequeuePassenger(out passenger)) return false;
+            if (!_queue.TryDequeuePassenger(out passenger))
+            {
+                _waitingRoom.ReleaseReservedSlot();
+                return false;
+            }
 
-            scanner.ProcessPassenger(passenger, _waitingRoom);
+            if (!scanner.TryStartAutoProcessing(passenger, OnAutoScannerCompleted))
+            {
+                _waitingRoom.ReleaseReservedSlot();
+                return false;
+            }
+
             _queue.RefillBackSlotIfPossible();
-
-            _economyController.AddPassengers(1);
-            _economyController.AddMoney(1 * _economyController.MoneyPerPassenger);
-
             return true;
         }
 
         public void ProcessManualClick()
         {
-            if (_economyController == null) return;
             if (_manualScanner == null) return;
             if (_waitingRoom == null) return;
+            if (!_waitingRoom.HasPhysicalCapacity) return;
 
-            if (!_manualScanner.TryReleaseOneToWaitingRoom(_waitingRoom)) return;
+            PassengerUIVisual passenger;
+            if (!_manualScanner.TryReleaseOneHeldPassenger(out passenger)) return;
 
-            _economyController.AddPassengers(1);
-            _economyController.AddMoney(1 * _economyController.MoneyPerPassenger);
+            CompleteProcessedPassenger(passenger, consumeReservation: true);
         }
 
         public void SetEconomyController(EconomyController controller)
@@ -111,6 +136,74 @@ namespace IdleAirport.GameCore
         {
             _passengersPerSecond = 0f;
             _passengerAccumulator = 0f;
+        }
+
+        private void OnAutoScannerCompleted(PassengerUIVisual passenger)
+        {
+            CompleteProcessedPassenger(passenger, consumeReservation: true);
+        }
+
+        private bool CompleteProcessedPassenger(PassengerUIVisual passenger, bool consumeReservation)
+        {
+            if (passenger == null)
+            {
+                if (consumeReservation && _waitingRoom != null)
+                    _waitingRoom.ReleaseReservedSlot();
+                return false;
+            }
+
+            if (_waitingRoom == null)
+            {
+                if (consumeReservation)
+                    passenger.Recycle();
+                return false;
+            }
+
+            bool enteredWaitingRoom = consumeReservation
+                ? _waitingRoom.TryReceivePassengerWithReservation(passenger)
+                : _waitingRoom.TryReceivePassenger(passenger);
+
+            if (!enteredWaitingRoom)
+            {
+                if (consumeReservation)
+                    _waitingRoom.ReleaseReservedSlot();
+
+                passenger.Recycle();
+                return false;
+            }
+
+            RewardProcessedPassenger();
+            return true;
+        }
+
+        private void RewardProcessedPassenger()
+        {
+            if (_economyController == null) return;
+
+            _economyController.AddPassengers(1);
+            _economyController.AddMoney(1 * _economyController.MoneyPerPassenger);
+        }
+
+        private void ReleaseManualReservations()
+        {
+            if (_manualScanner == null || _waitingRoom == null) return;
+
+            int releasedPassengers = _manualScanner.RecycleHeldPassengers();
+            ReleaseReservations(releasedPassengers);
+        }
+
+        private void CancelAutoProcessingReservation()
+        {
+            if (_aiScanner == null || _waitingRoom == null) return;
+
+            if (_aiScanner.CancelAutoProcessing())
+                ReleaseReservations(1);
+        }
+
+        private void ReleaseReservations(int count)
+        {
+            for (int i = 0; i < count; i++)
+                _waitingRoom.ReleaseReservedSlot();
         }
     }
 }

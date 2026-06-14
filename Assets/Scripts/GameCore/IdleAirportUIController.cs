@@ -54,6 +54,11 @@ namespace IdleAirport.GameCore
                 _ppsText.text = $"{NumberFormatter.Format(_passengerProcessor.PassengersPerSecond, 1)}/s";
             }
 
+            if (_scannerButton != null && _passengerProcessor != null)
+            {
+                _scannerButton.interactable = _passengerProcessor.CanProcessManualClick;
+            }
+
             if (_storesManager != null && _totalShopIncomeText != null)
             {
                 _totalShopIncomeText.text = $"{NumberFormatter.Format(_storesManager.TotalIncomePerSecond, 2)}/s";
