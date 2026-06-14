@@ -4,6 +4,18 @@ namespace IdleAirport.GameCore
 {
     public sealed class PassengerProcessor : MonoBehaviour
     {
+        public enum ManualScanFailureReason
+        {
+            None,
+            MissingQueue,
+            MissingWaitingRoom,
+            NoPassengers,
+            NoReservableCapacity,
+            ReserveFailed,
+            DequeueFailed,
+            WaitingRoomReceiveFailed
+        }
+
         [Header("References")]
         [SerializeField] private EconomyController _economyController;
         [SerializeField] private StoresManager _storesManager;
@@ -14,18 +26,23 @@ namespace IdleAirport.GameCore
 
         [Header("Settings")]
         [SerializeField] private int _manualClickValue = 1;
-        [SerializeField] private float _passengersPerSecond;
-        [SerializeField] private float _maxPendingPassengers = 10f;
-        private float _passengerAccumulator;
+        [SerializeField] private bool _debugManualScanState;
+
+        private bool _lastCanManualScan;
+        private string _lastManualScanBlockReason;
+        private ManualScanFailureReason _lastManualScanFailureReason;
 
         public int ManualClickValue => _manualClickValue;
-        public float PassengersPerSecond => _passengersPerSecond;
+        public float CurrentProcessingDuration => _aiScanner != null ? _aiScanner.ProcessingDuration : 0f;
+        public float CurrentPassengersPerSecond => HasActiveAIScanner && CurrentProcessingDuration > 0f
+            ? 1f / CurrentProcessingDuration
+            : 0f;
+        public bool HasActiveAIScanner => _aiScanner != null && _aiScanner.IsOperational;
         public bool IsPassengerFlowBlocked => _waitingRoom != null && !_waitingRoom.HasReservableCapacity;
-        public bool CanProcessManualClick =>
-            _manualScanner != null &&
-            _manualScanner.HeldCount > 0 &&
-            _waitingRoom != null &&
-            _waitingRoom.HasPhysicalCapacity;
+        public bool IsGameplayActive => isActiveAndEnabled;
+        public bool CanManualScan => EvaluateCanManualScan(out _);
+        public bool CanProcessManualClick => CanManualScan;
+        public ManualScanFailureReason LastManualScanFailureReason => _lastManualScanFailureReason;
 
         private void Awake()
         {
@@ -39,29 +56,10 @@ namespace IdleAirport.GameCore
 
         private void Update()
         {
-            TryFeedManualScanner();
-
-            if (_passengersPerSecond <= 0f) return;
-            if (_economyController == null) return;
-            if (_aiScanner == null) return;
-
-            _passengerAccumulator += _passengersPerSecond * Time.deltaTime;
-            _passengerAccumulator = Mathf.Min(_passengerAccumulator, _maxPendingPassengers);
-
-            int requested = Mathf.FloorToInt(_passengerAccumulator);
-            if (requested <= 0) return;
-
-            int processed = 0;
-            for (int i = 0; i < requested; i++)
-            {
-                if (TryProcessOnePassenger(_aiScanner))
-                    processed++;
-                else
-                    break;
-            }
-
-            if (processed > 0)
-                _passengerAccumulator -= processed;
+            LogManualScanStateIfNeeded();
+            TryRefillManualScanner();
+            if (HasActiveAIScanner)
+                TryProcessOnePassenger(_aiScanner);
         }
 
         private void OnDisable()
@@ -70,9 +68,10 @@ namespace IdleAirport.GameCore
             CancelAutoProcessingReservation();
         }
 
-        private void TryFeedManualScanner()
+        private void TryRefillManualScanner()
         {
-            if (_manualScanner == null || !_manualScanner.CanAcceptMore) return;
+            if (_manualScanner == null || !_manualScanner.IsOperational) return;
+            if (_manualScanner.HasManualPassengerReady) return;
             if (_queue == null || !_queue.HasPassengerReady) return;
             if (_waitingRoom == null || !_waitingRoom.TryReserveSlot()) return;
 
@@ -86,6 +85,7 @@ namespace IdleAirport.GameCore
             if (!_manualScanner.TryHoldPassenger(passenger))
             {
                 _waitingRoom.ReleaseReservedSlot();
+                passenger.Recycle();
                 return;
             }
 
@@ -94,7 +94,7 @@ namespace IdleAirport.GameCore
 
         private bool TryProcessOnePassenger(ScannerStationUIController scanner)
         {
-            if (scanner == null || scanner.IsBusy) return false;
+            if (scanner == null || !scanner.IsOperational || scanner.IsBusy) return false;
             if (_queue == null || !_queue.HasPassengerReady) return false;
             if (_waitingRoom == null || !_waitingRoom.TryReserveSlot()) return false;
 
@@ -115,16 +115,40 @@ namespace IdleAirport.GameCore
             return true;
         }
 
-        public void ProcessManualClick()
+        public bool TryManualScan()
         {
-            if (_manualScanner == null) return;
-            if (_waitingRoom == null) return;
-            if (!_waitingRoom.HasPhysicalCapacity) return;
+            _lastManualScanFailureReason = ManualScanFailureReason.None;
+
+            if (_waitingRoom == null)
+            {
+                _lastManualScanFailureReason = ManualScanFailureReason.MissingWaitingRoom;
+                return false;
+            }
+
+            if (_manualScanner == null || !_manualScanner.HasManualPassengerReady)
+            {
+                _lastManualScanFailureReason = ManualScanFailureReason.NoPassengers;
+                return false;
+            }
 
             PassengerUIVisual passenger;
-            if (!_manualScanner.TryReleaseOneHeldPassenger(out passenger)) return;
+            if (!_manualScanner.TryReleaseOneHeldPassenger(out passenger))
+            {
+                _lastManualScanFailureReason = ManualScanFailureReason.DequeueFailed;
+                return false;
+            }
 
-            CompleteProcessedPassenger(passenger, consumeReservation: true);
+            bool processed = CompleteProcessedPassenger(passenger, consumeReservation: true, instantWaitingRoomPlacement: true);
+            if (!processed)
+                _lastManualScanFailureReason = ManualScanFailureReason.WaitingRoomReceiveFailed;
+
+            TryRefillManualScanner();
+            return processed;
+        }
+
+        public void ProcessManualClick()
+        {
+            TryManualScan();
         }
 
         public void SetEconomyController(EconomyController controller)
@@ -138,23 +162,19 @@ namespace IdleAirport.GameCore
                 _aiScanner.gameObject.SetActive(true);
         }
 
-        public void AddPassengersPerSecond(float amount)
+        public void SetAIAutoProcessingDuration(float duration)
         {
-            _passengersPerSecond += amount;
-        }
+            if (_aiScanner == null) return;
 
-        public void ResetPassengersPerSecond()
-        {
-            _passengersPerSecond = 0f;
-            _passengerAccumulator = 0f;
+            _aiScanner.SetAutoProcessingDuration(duration);
         }
 
         private void OnAutoScannerCompleted(PassengerUIVisual passenger)
         {
-            CompleteProcessedPassenger(passenger, consumeReservation: true);
+            CompleteProcessedPassenger(passenger, consumeReservation: true, instantWaitingRoomPlacement: true);
         }
 
-        private bool CompleteProcessedPassenger(PassengerUIVisual passenger, bool consumeReservation)
+        private bool CompleteProcessedPassenger(PassengerUIVisual passenger, bool consumeReservation, bool instantWaitingRoomPlacement = false)
         {
             if (passenger == null)
             {
@@ -171,8 +191,12 @@ namespace IdleAirport.GameCore
             }
 
             bool enteredWaitingRoom = consumeReservation
-                ? _waitingRoom.TryReceivePassengerWithReservation(passenger)
-                : _waitingRoom.TryReceivePassenger(passenger);
+                ? instantWaitingRoomPlacement
+                    ? _waitingRoom.TryReceivePassengerWithReservationImmediate(passenger)
+                    : _waitingRoom.TryReceivePassengerWithReservation(passenger)
+                : instantWaitingRoomPlacement
+                    ? _waitingRoom.TryReceivePassengerImmediate(passenger)
+                    : _waitingRoom.TryReceivePassenger(passenger);
 
             if (!enteredWaitingRoom)
             {
@@ -212,6 +236,17 @@ namespace IdleAirport.GameCore
             return _storesManager != null ? _storesManager.GetPassengerIncomeBonus() : 0.0;
         }
 
+        public string GetManualScanBlockReason()
+        {
+            EvaluateCanManualScan(out string reason);
+            return reason;
+        }
+
+        public string GetLastManualScanFailureReason()
+        {
+            return _lastManualScanFailureReason.ToString();
+        }
+
         private void EnsureStoresManagerReference(bool logWarning = true)
         {
             if (_storesManager != null) return;
@@ -221,6 +256,72 @@ namespace IdleAirport.GameCore
             {
                 Debug.LogWarning("PassengerProcessor: StoresManager is not assigned, shop passenger bonus will not be applied.", this);
             }
+        }
+
+        private bool EvaluateCanManualScan(out string blockReason)
+        {
+            if (!isActiveAndEnabled)
+            {
+                blockReason = "PassengerProcessor is inactive.";
+                return false;
+            }
+
+            if (_queue == null)
+            {
+                blockReason = "Passenger queue reference is missing.";
+                return false;
+            }
+
+            if (_waitingRoom == null)
+            {
+                blockReason = "Waiting room reference is missing.";
+                return false;
+            }
+
+            if (!_queue.HasPassengerReady)
+            {
+                if (_manualScanner != null && _manualScanner.HasManualPassengerReady)
+                {
+                    blockReason = string.Empty;
+                    return true;
+                }
+
+                blockReason = $"Queue has no passengers. Active count: {_queue.ActivePassengerCount}.";
+                return false;
+            }
+
+            if (!_waitingRoom.HasReservableCapacity)
+            {
+                blockReason =
+                    $"Waiting room has no reservable capacity. Passengers: {_waitingRoom.CurrentCount}, Reserved: {_waitingRoom.ReservedCount}, Capacity: {_waitingRoom.Capacity}.";
+                return false;
+            }
+
+            blockReason = string.Empty;
+            return true;
+        }
+
+        private void LogManualScanStateIfNeeded()
+        {
+            if (!_debugManualScanState) return;
+
+            bool canManualScan = EvaluateCanManualScan(out string blockReason);
+            if (canManualScan == _lastCanManualScan && blockReason == _lastManualScanBlockReason) return;
+
+            _lastCanManualScan = canManualScan;
+            _lastManualScanBlockReason = blockReason;
+
+            if (canManualScan)
+            {
+                Debug.Log(
+                    $"PassengerProcessor manual scan ready. Queue: {_queue.ActivePassengerCount}, Waiting: {_waitingRoom.CurrentCount}, Reserved: {_waitingRoom.ReservedCount}.",
+                    this);
+                return;
+            }
+
+            Debug.Log(
+                $"PassengerProcessor manual scan blocked. Reason: {blockReason}",
+                this);
         }
 
         private void ReleaseManualReservations()

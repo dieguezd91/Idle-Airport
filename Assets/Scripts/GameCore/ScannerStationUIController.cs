@@ -24,6 +24,9 @@ namespace IdleAirport.GameCore
         public bool IsBusy => _isAutoScanner && _isBusy;
         public int HeldCount => _heldPassengers.Count;
         public bool CanAcceptMore => _isAutoScanner || _heldPassengers.Count < _maxHeldCount;
+        public float ProcessingDuration => _processingDuration;
+        public bool IsOperational => isActiveAndEnabled && gameObject.activeInHierarchy;
+        public bool HasManualPassengerReady => !_isAutoScanner && _heldPassengers.Count > 0;
 
         public bool TryHoldPassenger(PassengerUIVisual passenger)
         {
@@ -32,7 +35,7 @@ namespace IdleAirport.GameCore
             if (_heldPassengers.Count >= _maxHeldCount) return false;
 
             passenger.transform.SetParent(transform, true);
-            passenger.MoveTo(_scannerPoint.anchoredPosition + new Vector2(0, -_heldPassengers.Count * 45f));
+            passenger.SetPositionImmediate(_scannerPoint.anchoredPosition + new Vector2(0, -_heldPassengers.Count * 45f));
             _heldPassengers.Add(passenger);
             return true;
         }
@@ -57,10 +60,18 @@ namespace IdleAirport.GameCore
         public bool TryStartAutoProcessing(PassengerUIVisual passenger, Action<PassengerUIVisual> onCompleted)
         {
             if (passenger == null) return false;
+            if (!IsOperational) return false;
             if (!_isAutoScanner || _isBusy) return false;
 
             StartCoroutine(AutoProcessRoutine(passenger, onCompleted));
             return true;
+        }
+
+        public void SetAutoProcessingDuration(float duration)
+        {
+            if (!_isAutoScanner) return;
+
+            _processingDuration = Mathf.Max(0.01f, duration);
         }
 
         public int RecycleHeldPassengers()
@@ -91,7 +102,7 @@ namespace IdleAirport.GameCore
             _activeAutoPassenger = passenger;
 
             passenger.transform.SetParent(transform, true);
-            passenger.MoveTo(_scannerPoint.anchoredPosition);
+            passenger.SetPositionImmediate(_scannerPoint.anchoredPosition);
 
             yield return new WaitForSeconds(_processingDuration);
 

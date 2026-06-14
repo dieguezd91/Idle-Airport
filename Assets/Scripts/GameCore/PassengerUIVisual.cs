@@ -13,6 +13,8 @@ namespace IdleAirport.GameCore
         private Vector2 _targetAnchored;
         private bool _isMoving;
 
+        public bool IsMoving => _isMoving;
+
         private void Awake()
         {
             _rectTransform = GetComponent<RectTransform>();

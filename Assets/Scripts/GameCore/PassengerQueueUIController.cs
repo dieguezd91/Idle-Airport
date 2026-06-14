@@ -17,15 +17,26 @@ namespace IdleAirport.GameCore
 
         private readonly List<PassengerUIVisual> _activeQueue = new();
         private readonly List<PassengerUIVisual> _pool = new();
+        private bool _isInitialized;
 
         public bool HasPassengerReady => _activeQueue.Count > 0;
+        public int ActivePassengerCount => _activeQueue.Count;
 
-        private void Start()
+        private void Awake()
         {
+            InitializeQueue();
+        }
+
+        private void InitializeQueue()
+        {
+            if (_isInitialized) return;
+
             BuildPool();
             int count = Mathf.Min(_initialPassengerCount, _queueSlots.Length, _pool.Count);
             for (int i = 0; i < count; i++)
                 ActivatePassenger(i);
+
+            _isInitialized = true;
         }
 
         public bool TryDequeuePassenger(out PassengerUIVisual passenger)

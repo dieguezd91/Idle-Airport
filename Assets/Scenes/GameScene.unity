@@ -8201,8 +8201,7 @@ MonoBehaviour:
   _manualScanner: {fileID: 3000000242}
   _aiScanner: {fileID: 3000000262}
   _manualClickValue: 1
-  _passengersPerSecond: 0
-  _maxPendingPassengers: 10
+  _debugManualScanState: 1
 --- !u!114 &962926313
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9275,7 +9274,9 @@ MonoBehaviour:
   _passengerProcessor: {fileID: 890721249}
   _baseCost: 25
   _costMultiplier: 1.15
-  _effectPerPurchase: 0.5
+  _baseProcessingDuration: 1.5
+  _processingDurationMultiplierPerLevel: 0.9
+  _minimumProcessingDuration: 0.35
   _ownedCount: 0
 --- !u!114 &1643821350
 MonoBehaviour:
@@ -9571,6 +9572,7 @@ MonoBehaviour:
   - {fileID: 512156364}
   - {fileID: 1906513051}
   - {fileID: 1424260775}
+  _debugScanButton: 0
 --- !u!1 &1789571185
 GameObject:
   m_ObjectHideFlags: 0

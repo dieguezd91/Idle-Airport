@@ -56,6 +56,16 @@ namespace IdleAirport.GameCore
             return true;
         }
 
+        public bool TryReceivePassengerImmediate(PassengerUIVisual passenger)
+        {
+            if (!HasPhysicalCapacity) return false;
+
+            passenger.transform.SetParent(_container, true);
+            passenger.SetPositionImmediate(CalculatePosition(_passengers.Count));
+            _passengers.Add(passenger);
+            return true;
+        }
+
         public bool TryReserveSlot()
         {
             if (!HasReservableCapacity) return false;
@@ -82,6 +92,15 @@ namespace IdleAirport.GameCore
 
             _reservedSlots--;
             return TryReceivePassenger(passenger);
+        }
+
+        public bool TryReceivePassengerWithReservationImmediate(PassengerUIVisual passenger)
+        {
+            if (_reservedSlots <= 0) return false;
+            if (!HasPhysicalCapacity) return false;
+
+            _reservedSlots--;
+            return TryReceivePassengerImmediate(passenger);
         }
 
         private void RemovePassengers(int count)

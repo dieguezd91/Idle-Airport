@@ -29,10 +29,16 @@ namespace IdleAirport.GameCore
         [Header("Store Views")]
         [SerializeField] private StoresManager _storesManager;
         [SerializeField] private StoresUIItemView[] _storeViews;
+        [SerializeField] private bool _debugScanButton;
 
         private void Awake()
         {
             ValidateReferences();
+        }
+
+        private void OnEnable()
+        {
+            BindButtonListeners();
         }
 
         private void Start()
@@ -46,6 +52,7 @@ namespace IdleAirport.GameCore
 
         private void OnDestroy()
         {
+            UnbindButtonListeners();
             UnsubscribeFromEvents();
         }
 
@@ -53,12 +60,12 @@ namespace IdleAirport.GameCore
         {
             if (_passengerProcessor != null && _ppsText != null)
             {
-                _ppsText.text = $"{NumberFormatter.Format(_passengerProcessor.PassengersPerSecond, 1)}/s";
+                _ppsText.text = $"AI TSA: {NumberFormatter.Format(_passengerProcessor.CurrentPassengersPerSecond, 2)} pax/s";
             }
 
             if (_scannerButton != null && _passengerProcessor != null)
             {
-                _scannerButton.interactable = _passengerProcessor.CanProcessManualClick;
+                _scannerButton.interactable = _passengerProcessor.IsGameplayActive;
             }
 
             UpdatePassengerIncomeTexts();
@@ -66,7 +73,21 @@ namespace IdleAirport.GameCore
 
         public void OnScannerClicked()
         {
-            _passengerProcessor.ProcessManualClick();
+            if (_passengerProcessor == null) return;
+
+            bool processed = _passengerProcessor.TryManualScan();
+
+            if (!_debugScanButton) return;
+
+            if (processed)
+            {
+                Debug.Log("Scan button clicked. Manual scan processed a passenger.", this);
+                return;
+            }
+
+            Debug.Log(
+                $"Scan button clicked. Manual scan failed: {_passengerProcessor.GetLastManualScanFailureReason()} | {_passengerProcessor.GetManualScanBlockReason()}",
+                this);
         }
 
         public void OnBuyAITSAScannerClicked()
@@ -182,7 +203,11 @@ namespace IdleAirport.GameCore
             {
                 float cost = _aiTSAScannerUpgrade.CurrentCost;
                 int owned = _aiTSAScannerUpgrade.OwnedCount;
-                _aiTSAStatusText.text = $"${NumberFormatter.Format(Mathf.RoundToInt(cost))} | Owned: {owned}";
+                float currentPps = _aiTSAScannerUpgrade.CurrentPassengersPerSecond;
+                float nextPps = _aiTSAScannerUpgrade.NextPassengersPerSecond;
+                string statusLabel = owned > 0 ? $"L{owned}" : "Locked";
+                _aiTSAStatusText.text =
+                    $"AI TSA speed {statusLabel} | Now: {NumberFormatter.Format(currentPps, 2)} pax/s | Next: {NumberFormatter.Format(nextPps, 2)} pax/s | Cost: ${NumberFormatter.Format(Mathf.RoundToInt(cost))}";
             }
 
             if (_buyAITSButton != null)
@@ -221,35 +246,49 @@ namespace IdleAirport.GameCore
 
         private void ValidateReferences()
         {
-            bool hasErrors = false;
-
             if (_economyController == null)
             {
                 Debug.LogError("IdleAirportUIController: EconomyController is not assigned!");
-                hasErrors = true;
             }
 
             if (_passengerProcessor == null)
             {
                 Debug.LogError("IdleAirportUIController: PassengerProcessor is not assigned!");
-                hasErrors = true;
             }
 
             if (_scannerButton == null)
             {
                 Debug.LogError("IdleAirportUIController: ScannerButton is not assigned!");
-                hasErrors = true;
             }
 
-            if (!hasErrors)
+            if (_buyAITSButton == null || _aiTSAScannerUpgrade == null) return;
+
+            _buyAITSButton.onClick.RemoveListener(OnBuyAITSAScannerClicked);
+            _buyAITSButton.onClick.AddListener(OnBuyAITSAScannerClicked);
+        }
+
+        private void BindButtonListeners()
+        {
+            if (_scannerButton != null)
             {
+                _scannerButton.onClick.RemoveListener(OnScannerClicked);
                 _scannerButton.onClick.AddListener(OnScannerClicked);
             }
 
             if (_buyAITSButton != null && _aiTSAScannerUpgrade != null)
             {
+                _buyAITSButton.onClick.RemoveListener(OnBuyAITSAScannerClicked);
                 _buyAITSButton.onClick.AddListener(OnBuyAITSAScannerClicked);
             }
+        }
+
+        private void UnbindButtonListeners()
+        {
+            if (_scannerButton != null)
+                _scannerButton.onClick.RemoveListener(OnScannerClicked);
+
+            if (_buyAITSButton != null)
+                _buyAITSButton.onClick.RemoveListener(OnBuyAITSAScannerClicked);
         }
     }
 }
