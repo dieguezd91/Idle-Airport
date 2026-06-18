@@ -32,6 +32,9 @@ namespace IdleAirport.GameCore
         [SerializeField] private float _hudFeedbackDuration = 1.5f;
         [SerializeField] private float _hudFeedbackCooldown = 0.4f;
 
+        [Header("Gate UI")]
+        [SerializeField] private TextMeshProUGUI _nextFlightCountdownText;
+
         [Header("Store Views")]
         [SerializeField] private StoresManager _storesManager;
         [SerializeField] private StoresUIItemView[] _storeViews;
@@ -80,6 +83,7 @@ namespace IdleAirport.GameCore
             }
 
             UpdatePassengerIncomeTexts();
+            UpdateNextFlightCountdownText();
         }
 
         public void OnScannerClicked()
@@ -164,11 +168,14 @@ namespace IdleAirport.GameCore
                 _storesManager.OnStorePurchaseFailed += OnStorePurchaseFailed;
             }
 
-            if (_waitingRoomStatusText != null && _passengerProcessor != null)
+            if (_passengerProcessor != null)
             {
                 WaitingRoomUIController waitingRoom = FindWaitingRoom();
                 if (waitingRoom != null)
+                {
                     waitingRoom.OnOccupancyChanged += OnWaitingRoomOccupancyChanged;
+                    waitingRoom.OnPassengersBoarded += OnPassengersBoarded;
+                }
             }
         }
 
@@ -187,10 +194,14 @@ namespace IdleAirport.GameCore
                 _storesManager.OnStorePurchaseFailed -= OnStorePurchaseFailed;
             }
 
-            WaitingRoomUIController waitingRoom = FindWaitingRoom();
-            if (waitingRoom != null)
+            if (_passengerProcessor != null)
             {
-                waitingRoom.OnOccupancyChanged -= OnWaitingRoomOccupancyChanged;
+                WaitingRoomUIController waitingRoom = FindWaitingRoom();
+                if (waitingRoom != null)
+                {
+                    waitingRoom.OnOccupancyChanged -= OnWaitingRoomOccupancyChanged;
+                    waitingRoom.OnPassengersBoarded -= OnPassengersBoarded;
+                }
             }
         }
 
@@ -312,7 +323,15 @@ namespace IdleAirport.GameCore
                 return;
 
             int displayedCurrent = Mathf.Clamp(current + reserved, 0, capacity);
-            _waitingRoomStatusText.text = $"Waiting: {displayedCurrent}/{capacity}";
+            _waitingRoomStatusText.text = BuildGateStatusText(displayedCurrent, capacity);
+        }
+
+        private void OnPassengersBoarded(int count)
+        {
+            if (count <= 0)
+                return;
+
+            ShowHUDFeedback("Flight departed");
         }
 
         private void RefreshWaitingRoomStatus()
@@ -321,11 +340,33 @@ namespace IdleAirport.GameCore
             if (waitingRoom == null)
             {
                 if (_waitingRoomStatusText != null)
-                    _waitingRoomStatusText.text = "Waiting: 0/0";
+                    _waitingRoomStatusText.text = "Gate: 0/0";
                 return;
             }
 
             OnWaitingRoomOccupancyChanged(waitingRoom.CurrentCount, waitingRoom.ReservedCount, waitingRoom.Capacity);
+        }
+
+        private void UpdateNextFlightCountdownText()
+        {
+            if (_nextFlightCountdownText == null)
+                return;
+
+            WaitingRoomUIController waitingRoom = FindWaitingRoom();
+            if (waitingRoom == null || !waitingRoom.IsFlightBoardingActive)
+            {
+                _nextFlightCountdownText.text = string.Empty;
+                return;
+            }
+
+            if (!waitingRoom.HasPassengersInGate)
+            {
+                _nextFlightCountdownText.text = "Next flight: --";
+                return;
+            }
+
+            int seconds = Mathf.CeilToInt(waitingRoom.TimeUntilNextBoarding);
+            _nextFlightCountdownText.text = $"Next flight: {seconds:00}s";
         }
 
         private WaitingRoomUIController FindWaitingRoom()
@@ -337,11 +378,11 @@ namespace IdleAirport.GameCore
         {
             return reason switch
             {
-                PassengerProcessor.ManualScanFailureReason.NoPassengers => "No passenger ready to scan",
-                PassengerProcessor.ManualScanFailureReason.NoReservableCapacity => "Waiting Room Full",
-                PassengerProcessor.ManualScanFailureReason.MissingQueue => "Passenger queue missing",
-                PassengerProcessor.ManualScanFailureReason.MissingWaitingRoom => "Waiting room missing",
-                PassengerProcessor.ManualScanFailureReason.WaitingRoomReceiveFailed => "Waiting Room Full",
+                PassengerProcessor.ManualScanFailureReason.NoPassengers => "No passenger ready to board",
+                PassengerProcessor.ManualScanFailureReason.NoReservableCapacity => "Waiting for next flight",
+                PassengerProcessor.ManualScanFailureReason.MissingQueue => "Boarding queue missing",
+                PassengerProcessor.ManualScanFailureReason.MissingWaitingRoom => "Boarding area missing",
+                PassengerProcessor.ManualScanFailureReason.WaitingRoomReceiveFailed => "Waiting for next flight",
                 _ => "Cannot scan right now"
             };
         }
@@ -434,6 +475,15 @@ namespace IdleAirport.GameCore
 
             if (_aiTSAScannerCardView != null)
                 _aiTSAScannerCardView.ClearClickHandler();
+        }
+
+        private string BuildGateStatusText(int displayedCurrent, int capacity)
+        {
+            string status = $"Gate: {displayedCurrent}/{capacity}";
+            if (capacity > 0 && displayedCurrent >= capacity)
+                status += " | Boarding";
+
+            return status;
         }
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace IdleAirport.GameCore
 {
@@ -13,10 +14,13 @@ namespace IdleAirport.GameCore
         [SerializeField] private int _rows = 16;
         [SerializeField] private int _maxPassengers = 15;
 
-        [Header("Auto Boarding")]
+        [Header("Flight Boarding")]
+        [FormerlySerializedAs("_autoBoardPassengers")]
         [SerializeField] private bool _autoBoardPassengers = true;
-        [SerializeField] private float _boardingInterval = 5f;
-        [SerializeField] private int _passengersPerBoarding = 1;
+        [FormerlySerializedAs("_boardingInterval")]
+        [SerializeField] private float _boardingInterval = 4f;
+        [FormerlySerializedAs("_passengersPerBoarding")]
+        [SerializeField] private int _passengersPerBoarding = 8;
 
         private RectTransform _container;
         private readonly List<PassengerUIVisual> _passengers = new();
@@ -24,6 +28,7 @@ namespace IdleAirport.GameCore
         private float _boardingTimer;
 
         public event Action<int, int, int> OnOccupancyChanged;
+        public event Action<int> OnPassengersBoarded;
 
         public int VisualCapacity => Mathf.Max(0, _columns * _rows);
         public int Capacity => _maxPassengers > 0 ? Mathf.Min(_maxPassengers, VisualCapacity) : VisualCapacity;
@@ -31,6 +36,21 @@ namespace IdleAirport.GameCore
         public bool HasCapacity => HasReservableCapacity;
         public bool HasPhysicalCapacity => _passengers.Count < Capacity;
         public bool HasReservableCapacity => _passengers.Count + _reservedSlots < Capacity;
+        public bool IsFlightBoardingActive => _autoBoardPassengers;
+        public bool HasPassengersInGate => _passengers.Count > 0;
+        public float TimeUntilNextBoarding
+        {
+            get
+            {
+                if (!_autoBoardPassengers)
+                    return 0f;
+
+                if (_passengers.Count == 0)
+                    return 0f;
+
+                return Mathf.Max(0f, _boardingInterval - _boardingTimer);
+            }
+        }
         public int CurrentCount => _passengers.Count;
         public int ReservedCount => _reservedSlots;
 
@@ -46,6 +66,8 @@ namespace IdleAirport.GameCore
             _columns = Mathf.Max(1, _columns);
             _rows = Mathf.Max(1, _rows);
             _maxPassengers = Mathf.Max(0, _maxPassengers);
+            _boardingInterval = Mathf.Max(0.1f, _boardingInterval);
+            _passengersPerBoarding = Mathf.Max(1, _passengersPerBoarding);
         }
 
         private void Update()
@@ -54,11 +76,10 @@ namespace IdleAirport.GameCore
             if (_passengers.Count == 0) return;
 
             _boardingTimer += Time.deltaTime;
-            if (_boardingTimer >= _boardingInterval)
+            while (_boardingTimer >= _boardingInterval && _passengers.Count > 0)
             {
-                _boardingTimer = 0f;
-                int count = Mathf.Min(_passengersPerBoarding, _passengers.Count);
-                RemovePassengers(count);
+                _boardingTimer -= _boardingInterval;
+                BoardPassengers();
             }
         }
 
@@ -125,16 +146,22 @@ namespace IdleAirport.GameCore
             return TryReceivePassengerImmediate(passenger);
         }
 
-        private void RemovePassengers(int count)
+        private void BoardPassengers()
         {
-            for (int i = 0; i < count; i++)
+            int boardedCount = Mathf.Min(_passengersPerBoarding, _passengers.Count);
+            if (boardedCount <= 0)
+                return;
+
+            for (int i = 0; i < boardedCount; i++)
             {
                 PassengerUIVisual p = _passengers[0];
                 _passengers.RemoveAt(0);
                 p.Recycle();
             }
+
             ReapplyGridPositions();
             NotifyOccupancyChanged();
+            OnPassengersBoarded?.Invoke(boardedCount);
         }
 
         private void ReapplyGridPositions()

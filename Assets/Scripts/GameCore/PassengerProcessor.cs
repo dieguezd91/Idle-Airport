@@ -279,7 +279,7 @@ namespace IdleAirport.GameCore
             if (!_waitingRoom.HasReservableCapacity)
             {
                 blockReason =
-                    $"Waiting room has no reservable capacity. Passengers: {_waitingRoom.CurrentCount}, Reserved: {_waitingRoom.ReservedCount}, Capacity: {_waitingRoom.Capacity}.";
+                    $"Gate has no reservable capacity. Passengers: {_waitingRoom.CurrentCount}, Reserved: {_waitingRoom.ReservedCount}, Capacity: {_waitingRoom.Capacity}.";
                 return false;
             }
 
@@ -300,7 +300,7 @@ namespace IdleAirport.GameCore
             if (canManualScan)
             {
                 Debug.Log(
-                    $"PassengerProcessor manual scan ready. Queue: {_queue.ActivePassengerCount}, Waiting: {_waitingRoom.CurrentCount}, Reserved: {_waitingRoom.ReservedCount}.",
+                    $"PassengerProcessor manual scan ready. Queue: {_queue.ActivePassengerCount}, Gate: {_waitingRoom.CurrentCount}, Reserved: {_waitingRoom.ReservedCount}.",
                     this);
                 return;
             }
