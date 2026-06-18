@@ -2,13 +2,10 @@ using UnityEngine.Events;
 
 namespace IdleAirport.GameCore
 {
-    public sealed class AITSAScannerUpgradeCardView : PurchaseCardView
+    public sealed class AIDurabilityUpgradeCardView : PurchaseCardView
     {
-        private const string Title = "AI Scanner";
+        private const string Title = "Durability";
         private const string LockedLabel = "Locked";
-        private const string NotInstalledLabel = "Not installed";
-        private const string OnlineLabel = "online";
-        private const string TokensLabel = "tokens";
 
         public void SetData(AITSAScannerUpgrade upgrade)
         {
@@ -18,22 +15,24 @@ namespace IdleAirport.GameCore
                 return;
             }
 
-            bool canPurchase = upgrade.CanPurchase();
+            bool hasScanner = upgrade.OwnedCount > 0;
+            bool canPurchase = hasScanner && upgrade.CanPurchaseDurabilityUpgrade();
             PurchaseCardVisualState visualState = canPurchase
                 ? PurchaseCardVisualState.Available
-                : PurchaseCardVisualState.NeedMoney;
+                : hasScanner
+                    ? PurchaseCardVisualState.NeedMoney
+                    : PurchaseCardVisualState.Locked;
 
-            string stateLabel = upgrade.OwnedCount <= 0
-                ? NotInstalledLabel
-                : $"{upgrade.EffectiveScannerCount}/{upgrade.OwnedCount} {OnlineLabel}";
-
-            string tokenLabel = upgrade.OwnedCount <= 0
-                ? $"+{upgrade.TokensPerScanner} {TokensLabel}"
-                : $"{upgrade.CurrentTokens}/{upgrade.MaxTokens} {TokensLabel}";
+            string stateLabel = hasScanner
+                ? $"Cap {upgrade.TokensPerScanner}"
+                : LockedLabel;
+            string benefitLabel = hasScanner
+                ? $"+{upgrade.TokensPerDurabilityUpgrade}"
+                : string.Empty;
 
             SetText(_nameText, Title);
-            SetText(_stateText, CombineLines(stateLabel, tokenLabel));
-            SetText(_actionText, $"${FormatCost(upgrade.CurrentCost)}");
+            SetText(_stateText, CombineLines(stateLabel, benefitLabel));
+            SetText(_actionText, hasScanner ? $"${FormatCost(upgrade.DurabilityUpgradeCost)}" : string.Empty);
             SetText(_iconText, BuildShortAcronym(Title));
             ApplyVisualState(visualState, canPurchase);
         }

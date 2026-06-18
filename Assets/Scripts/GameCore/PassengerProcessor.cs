@@ -21,6 +21,7 @@ namespace IdleAirport.GameCore
         [SerializeField] private StoresManager _storesManager;
         [SerializeField] private PassengerQueueUIController _queue;
         [SerializeField] private WaitingRoomUIController _waitingRoom;
+        [SerializeField] private AITSAScannerUpgrade _aiTSAScannerUpgrade;
         [SerializeField] private ScannerStationUIController _manualScanner;
         [SerializeField] private ScannerStationUIController _aiScanner;
 
@@ -33,11 +34,18 @@ namespace IdleAirport.GameCore
         private ManualScanFailureReason _lastManualScanFailureReason;
 
         public int ManualClickValue => _manualClickValue;
-        public float CurrentProcessingDuration => _aiScanner != null ? _aiScanner.ProcessingDuration : 0f;
-        public float CurrentPassengersPerSecond => HasActiveAIScanner && CurrentProcessingDuration > 0f
-            ? 1f / CurrentProcessingDuration
-            : 0f;
+        public float CurrentProcessingDuration => _aiTSAScannerUpgrade != null
+            ? _aiTSAScannerUpgrade.CurrentProcessingDuration
+            : _aiScanner != null
+                ? _aiScanner.ProcessingDuration
+                : 0f;
+        public float CurrentPassengersPerSecond => _aiTSAScannerUpgrade != null
+            ? _aiTSAScannerUpgrade.CurrentPassengersPerSecond
+            : HasActiveAIScanner && CurrentProcessingDuration > 0f
+                ? 1f / CurrentProcessingDuration
+                : 0f;
         public bool HasActiveAIScanner => _aiScanner != null && _aiScanner.IsOperational;
+        public bool CanAutoProcessAIScanner => HasActiveAIScanner && (_aiTSAScannerUpgrade == null || _aiTSAScannerUpgrade.CanAutoProcess);
         public bool IsPassengerFlowBlocked => _waitingRoom != null && !_waitingRoom.HasReservableCapacity;
         public bool IsGameplayActive => isActiveAndEnabled;
         public bool CanManualScan => EvaluateCanManualScan(out _);
@@ -49,7 +57,7 @@ namespace IdleAirport.GameCore
         {
             LogManualScanStateIfNeeded();
             TryRefillManualScanner();
-            if (HasActiveAIScanner)
+            if (CanAutoProcessAIScanner)
                 TryProcessOnePassenger(_aiScanner);
         }
 
@@ -86,6 +94,7 @@ namespace IdleAirport.GameCore
         private bool TryProcessOnePassenger(ScannerStationUIController scanner)
         {
             if (scanner == null || !scanner.IsOperational || scanner.IsBusy) return false;
+            if (_aiTSAScannerUpgrade != null && !_aiTSAScannerUpgrade.CanAutoProcess) return false;
             if (_queue == null || !_queue.HasPassengerReady) return false;
             if (_waitingRoom == null || !_waitingRoom.TryReserveSlot()) return false;
 
@@ -168,7 +177,14 @@ namespace IdleAirport.GameCore
 
         private void OnAutoScannerCompleted(PassengerUIVisual passenger)
         {
-            CompleteProcessedPassenger(passenger, consumeReservation: true, instantWaitingRoomPlacement: true);
+            bool processed = CompleteProcessedPassenger(passenger, consumeReservation: true, instantWaitingRoomPlacement: true);
+            if (!processed)
+                return;
+
+            if (_aiTSAScannerUpgrade != null && !_aiTSAScannerUpgrade.TryConsumeTokenAfterAutoScan())
+            {
+                Debug.LogWarning("PassengerProcessor: Auto scan completed but AI TSA tokens could not be consumed.", this);
+            }
         }
 
         private bool CompleteProcessedPassenger(PassengerUIVisual passenger, bool consumeReservation, bool instantWaitingRoomPlacement = false)

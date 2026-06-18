@@ -52,7 +52,7 @@ namespace IdleAirport.GameCore
         [SerializeField] private Color _lockedAccentColor = new(0.56f, 0.60f, 0.69f, 1f);
 
         [Header("Text Colors")]
-        private static readonly Color NameTextColor = Color.black;
+        private static readonly Color NameTextColor = Color.white;
         private static readonly Color StateTextColor = new(0.88f, 0.92f, 0.97f, 1f);
         private static readonly Color ActionTextColor = Color.black;
         private static readonly Color IconTextColor = Color.white;
