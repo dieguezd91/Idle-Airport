@@ -1,23 +1,9 @@
-using TMPro;
-using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UI;
 
 namespace IdleAirport.GameCore
 {
-    public sealed class StoresUIItemView : MonoBehaviour
+    public sealed class StoresUIItemView : PurchaseCardView
     {
-        [Header("UI")]
-        [SerializeField] private TextMeshProUGUI _nameText;
-        [SerializeField] private TextMeshProUGUI _statusText;
-        [SerializeField] private TextMeshProUGUI _costText;
-        [SerializeField] private Button _buyButton;
-        [SerializeField] private Image _buttonBackground;
-
-        [Header("Button Colors")]
-        [SerializeField] private Color _availableButtonColor = new(0.2f, 0.55f, 0.25f, 1f);
-        [SerializeField] private Color _disabledButtonColor = new(0.3f, 0.3f, 0.3f, 1f);
-
         private const string LockedText = "Locked";
 
         public void SetData(Store store, bool canPurchase)
@@ -31,96 +17,60 @@ namespace IdleAirport.GameCore
             bool isUnlocked = store.IsUnlocked;
             bool isPurchasable = isUnlocked && canPurchase;
 
-            SetName(store);
-            SetStatus(store);
-            SetCost(store, isUnlocked, canPurchase);
-            SetButtonState(isPurchasable);
+            PurchaseCardVisualState visualState = ResolveVisualState(isUnlocked, isPurchasable);
+
+            SetText(_nameText, store.Name);
+            SetText(_stateText, BuildStateText(store));
+            SetText(_actionText, BuildPriceText(store));
+            SetText(_iconText, BuildShortAcronym(store.Name));
+
+            ApplyVisualState(visualState, isPurchasable);
         }
 
         public void SetClickHandler(UnityAction callback)
         {
-            if (_buyButton == null)
-                return;
-
-            _buyButton.onClick.RemoveAllListeners();
-
-            if (callback != null)
-                _buyButton.onClick.AddListener(callback);
+            SetActionHandler(callback);
         }
 
         public void ClearClickHandler()
         {
-            if (_buyButton != null)
-                _buyButton.onClick.RemoveAllListeners();
+            ClearActionHandler();
         }
 
-        private void SetName(Store store)
+        private static PurchaseCardVisualState ResolveVisualState(bool isUnlocked, bool isPurchasable)
         {
-            if (_nameText != null)
-                _nameText.text = store.Name;
-        }
-
-        private void SetStatus(Store store)
-        {
-            if (_statusText == null)
-                return;
-
-            if (!store.IsUnlocked)
-            {
-                _statusText.text = LockedText;
-                return;
-            }
-
-            string income = NumberFormatter.Format(store.IncomePerPassenger, 2);
-
-            _statusText.text = store.OwnedCount > 0
-                ? $"Lv. {store.OwnedCount} • +${income}/pax"
-                : $"+${income}/pax";
-        }
-
-        private void SetCost(Store store, bool isUnlocked, bool canPurchase)
-        {
-            if (_costText == null)
-                return;
-
             if (!isUnlocked)
-            {
-                _costText.text = LockedText;
-                return;
-            }
+                return PurchaseCardVisualState.Locked;
 
-            string cost = NumberFormatter.Format(store.CurrentCost, 0);
-
-            _costText.text = canPurchase
-                ? $"Buy ${cost}"
-                : $"Need ${cost}";
+            return isPurchasable
+                ? PurchaseCardVisualState.Available
+                : PurchaseCardVisualState.NeedMoney;
         }
 
-        private void SetButtonState(bool isPurchasable)
+        private string BuildStateText(Store store)
         {
-            if (_buyButton != null)
-                _buyButton.interactable = isPurchasable;
+            if (!store.IsUnlocked)
+                return LockedText;
 
-            if (_buttonBackground != null)
-            {
-                _buttonBackground.color = isPurchasable
-                    ? _availableButtonColor
-                    : _disabledButtonColor;
-            }
+            return $"+${FormatBonus(store.IncomePerPassenger)}/pax";
+        }
+
+        private string BuildPriceText(Store store)
+        {
+            if (!store.IsUnlocked)
+                return string.Empty;
+
+            return $"${FormatCost(store.CurrentCost)}";
         }
 
         private void SetUnavailableState()
         {
-            if (_nameText != null)
-                _nameText.text = string.Empty;
+            SetText(_nameText, string.Empty);
+            SetText(_stateText, LockedText);
+            SetText(_actionText, string.Empty);
+            SetText(_iconText, string.Empty);
 
-            if (_statusText != null)
-                _statusText.text = LockedText;
-
-            if (_costText != null)
-                _costText.text = LockedText;
-
-            SetButtonState(false);
+            ApplyVisualState(PurchaseCardVisualState.Locked, false);
         }
     }
 }

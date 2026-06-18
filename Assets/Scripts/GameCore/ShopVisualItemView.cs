@@ -17,10 +17,13 @@ namespace IdleAirport.GameCore
                 _nameText.text = storeName;
 
             if (_levelText != null)
-                _levelText.text = $"Level {ownedCount}";
+                _levelText.text = $"Lv. {ownedCount}";
 
             if (_bonusText != null)
-                _bonusText.text = $"+${NumberFormatter.Format(incomePerPassenger * ownedCount, 2)}/passenger total";
+            {
+                double totalIncome = incomePerPassenger * ownedCount;
+                _bonusText.text = $"+${NumberFormatter.Format(totalIncome, 2)}/pax";
+            }
         }
     }
 }

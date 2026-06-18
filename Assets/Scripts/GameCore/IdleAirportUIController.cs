@@ -1,7 +1,7 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 
 namespace IdleAirport.GameCore
 {
@@ -19,6 +19,7 @@ namespace IdleAirport.GameCore
 
         [Header("Upgrade UI")]
         [SerializeField] private AITSAScannerUpgrade _aiTSAScannerUpgrade;
+        [SerializeField] private AITSAScannerUpgradeCardView _aiTSAScannerCardView;
         [SerializeField] private Button _buyAITSButton;
         [SerializeField] private TextMeshProUGUI _aiTSAStatusText;
 
@@ -54,6 +55,7 @@ namespace IdleAirport.GameCore
         {
             SubscribeToEvents();
             RegisterStoreButtonHandlers();
+            RegisterAITSButtonHandler();
             UpdateAllTexts();
             UpdateUpgradeUI();
             UpdateStoreUI();
@@ -129,6 +131,21 @@ namespace IdleAirport.GameCore
 
                 int index = i;
                 _storeViews[i].SetClickHandler(() => _storesManager.TryPurchaseStore(index));
+            }
+        }
+
+        private void RegisterAITSButtonHandler()
+        {
+            if (_aiTSAScannerCardView != null)
+            {
+                _aiTSAScannerCardView.SetClickHandler(OnBuyAITSAScannerClicked);
+                return;
+            }
+
+            if (_buyAITSButton != null)
+            {
+                _buyAITSButton.onClick.RemoveListener(OnBuyAITSAScannerClicked);
+                _buyAITSButton.onClick.AddListener(OnBuyAITSAScannerClicked);
             }
         }
 
@@ -231,17 +248,22 @@ namespace IdleAirport.GameCore
         {
             if (_aiTSAScannerUpgrade == null) return;
 
+            if (_aiTSAScannerCardView != null)
+            {
+                _aiTSAScannerCardView.SetData(_aiTSAScannerUpgrade);
+                return;
+            }
+
             if (_aiTSAStatusText != null)
             {
-                float cost = _aiTSAScannerUpgrade.CurrentCost;
                 int owned = _aiTSAScannerUpgrade.OwnedCount;
                 float currentPps = _aiTSAScannerUpgrade.CurrentPassengersPerSecond;
                 float nextPps = _aiTSAScannerUpgrade.NextPassengersPerSecond;
-                string statusLabel = owned > 0 ? $"Level {owned}" : "Locked";
-                _aiTSAStatusText.text =
-                    owned > 0
-                        ? $"AI TSA {statusLabel} | Current: {NumberFormatter.Format(currentPps, 2)} pax/s | Next: {NumberFormatter.Format(nextPps, 2)} pax/s | Upgrade: ${NumberFormatter.Format(Mathf.RoundToInt(cost))}"
-                        : $"AI TSA Locked | Activates at {NumberFormatter.Format(nextPps, 2)} pax/s | Cost: ${NumberFormatter.Format(Mathf.RoundToInt(cost))}";
+                string stateLabel = owned > 0 ? $"Lv. {owned}" : "Ready";
+                string benefitLabel = owned > 0
+                    ? $"+{NumberFormatter.Format(currentPps, 2)} PPS"
+                    : $"+{NumberFormatter.Format(nextPps, 2)} PPS";
+                _aiTSAStatusText.text = $"AI Scanner\n{stateLabel}\n{benefitLabel}";
             }
 
             if (_buyAITSButton != null)
@@ -286,11 +308,11 @@ namespace IdleAirport.GameCore
 
         private void OnWaitingRoomOccupancyChanged(int current, int reserved, int capacity)
         {
-            if (_waitingRoomStatusText == null) return;
+            if (_waitingRoomStatusText == null)
+                return;
 
             int displayedCurrent = Mathf.Clamp(current + reserved, 0, capacity);
-            string status = displayedCurrent >= capacity ? " | Waiting Room Full" : string.Empty;
-            _waitingRoomStatusText.text = $"Waiting: {displayedCurrent}/{capacity}{status}";
+            _waitingRoomStatusText.text = $"Waiting: {displayedCurrent}/{capacity}";
         }
 
         private void RefreshWaitingRoomStatus()
@@ -385,10 +407,10 @@ namespace IdleAirport.GameCore
                 Debug.LogError("IdleAirportUIController: ScannerButton is not assigned!");
             }
 
-            if (_buyAITSButton == null || _aiTSAScannerUpgrade == null) return;
-
-            _buyAITSButton.onClick.RemoveListener(OnBuyAITSAScannerClicked);
-            _buyAITSButton.onClick.AddListener(OnBuyAITSAScannerClicked);
+            if (_storesManager != null && _storeViews == null)
+            {
+                Debug.LogWarning("IdleAirportUIController: StoreViews array is not assigned.", this);
+            }
         }
 
         private void BindButtonListeners()
@@ -399,11 +421,7 @@ namespace IdleAirport.GameCore
                 _scannerButton.onClick.AddListener(OnScannerClicked);
             }
 
-            if (_buyAITSButton != null && _aiTSAScannerUpgrade != null)
-            {
-                _buyAITSButton.onClick.RemoveListener(OnBuyAITSAScannerClicked);
-                _buyAITSButton.onClick.AddListener(OnBuyAITSAScannerClicked);
-            }
+            RegisterAITSButtonHandler();
         }
 
         private void UnbindButtonListeners()
@@ -413,6 +431,9 @@ namespace IdleAirport.GameCore
 
             if (_buyAITSButton != null)
                 _buyAITSButton.onClick.RemoveListener(OnBuyAITSAScannerClicked);
+
+            if (_aiTSAScannerCardView != null)
+                _aiTSAScannerCardView.ClearClickHandler();
         }
     }
 }
