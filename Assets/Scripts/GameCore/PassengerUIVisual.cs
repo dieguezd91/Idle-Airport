@@ -12,6 +12,8 @@ namespace IdleAirport.GameCore
         private Image _image;
         private Vector2 _targetAnchored;
         private bool _isMoving;
+        private PassengerPool _pool;
+        private bool _isPooled;
 
         public bool IsMoving => _isMoving;
 
@@ -20,6 +22,23 @@ namespace IdleAirport.GameCore
             _rectTransform = GetComponent<RectTransform>();
             _image = GetComponent<Image>();
         }
+
+        internal void SetPool(PassengerPool pool)
+        {
+            _pool = pool;
+        }
+
+        internal void MarkAsPooled()
+        {
+            _isPooled = true;
+        }
+
+        internal void MarkAsInUse()
+        {
+            _isPooled = false;
+        }
+
+        internal bool IsPooled => _isPooled;
 
         public void SetPositionImmediate(Vector2 anchoredPosition)
         {
@@ -40,10 +59,22 @@ namespace IdleAirport.GameCore
                 _image.color = color;
         }
 
-        public void Recycle()
+        public void ResetForReuse()
         {
             _isMoving = false;
-            _targetAnchored = Vector2.zero;
+            _targetAnchored = _rectTransform != null ? _rectTransform.anchoredPosition : Vector2.zero;
+        }
+
+        public void Recycle()
+        {
+            if (_pool != null)
+            {
+                _pool.Release(this);
+                return;
+            }
+
+            _isPooled = true;
+            ResetForReuse();
             gameObject.SetActive(false);
         }
 
@@ -59,6 +90,11 @@ namespace IdleAirport.GameCore
                 _rectTransform.anchoredPosition = _targetAnchored;
                 _isMoving = false;
             }
+        }
+
+        private void OnDisable()
+        {
+            _isMoving = false;
         }
     }
 }

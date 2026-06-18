@@ -45,16 +45,6 @@ namespace IdleAirport.GameCore
         public ManualScanFailureReason LastManualScanFailureReason => _lastManualScanFailureReason;
         public WaitingRoomUIController WaitingRoom => _waitingRoom;
 
-        private void Awake()
-        {
-            EnsureStoresManagerReference();
-        }
-
-        private void OnValidate()
-        {
-            EnsureStoresManagerReference(logWarning: false);
-        }
-
         private void Update()
         {
             LogManualScanStateIfNeeded();
@@ -252,17 +242,6 @@ namespace IdleAirport.GameCore
         public string GetLastManualScanFailureReason()
         {
             return _lastManualScanFailureReason.ToString();
-        }
-
-        private void EnsureStoresManagerReference(bool logWarning = true)
-        {
-            if (_storesManager != null) return;
-
-            _storesManager = FindFirstObjectByType<StoresManager>();
-            if (_storesManager == null && logWarning)
-            {
-                Debug.LogWarning("PassengerProcessor: StoresManager is not assigned, shop passenger bonus will not be applied.", this);
-            }
         }
 
         private bool EvaluateCanManualScan(out string blockReason)

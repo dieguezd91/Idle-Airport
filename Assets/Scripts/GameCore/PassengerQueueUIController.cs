@@ -7,22 +7,18 @@ namespace IdleAirport.GameCore
     {
         [Header("References")]
         [SerializeField] private RectTransform[] _queueSlots;
-
-        [Header("Prefab Pool")]
-        [SerializeField] private PassengerUIVisual _passengerTemplate;
+        [SerializeField] private PassengerPool _passengerPool;
 
         [Header("Settings")]
         [SerializeField] private int _initialPassengerCount = 5;
-        [SerializeField] private int _poolSize = 25;
 
         private readonly List<PassengerUIVisual> _activeQueue = new();
-        private readonly List<PassengerUIVisual> _pool = new();
         private bool _isInitialized;
 
         public bool HasPassengerReady => _activeQueue.Count > 0;
         public int ActivePassengerCount => _activeQueue.Count;
 
-        private void Awake()
+        private void Start()
         {
             InitializeQueue();
         }
@@ -30,9 +26,14 @@ namespace IdleAirport.GameCore
         private void InitializeQueue()
         {
             if (_isInitialized) return;
+            if (_passengerPool == null)
+            {
+                Debug.LogError("PassengerQueueUIController: PassengerPool is not assigned.", this);
+                return;
+            }
 
-            BuildPool();
-            int count = Mathf.Min(_initialPassengerCount, _queueSlots.Length, _pool.Count);
+            _passengerPool.Prewarm();
+            int count = Mathf.Min(_initialPassengerCount, _queueSlots.Length);
             for (int i = 0; i < count; i++)
                 ActivatePassenger(i);
 
@@ -58,52 +59,34 @@ namespace IdleAirport.GameCore
 
         public void RefillBackSlotIfPossible()
         {
+            if (_passengerPool == null) return;
+
             int nextSlot = _activeQueue.Count;
             if (nextSlot >= _queueSlots.Length) return;
 
-            PassengerUIVisual p = GetInactivePassenger();
-            if (p == null) return;
+            if (!_passengerPool.TryGet(out PassengerUIVisual p))
+                return;
 
             p.transform.SetParent(transform, false);
-            p.gameObject.SetActive(true);
-            p.SetColor(Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.5f, 1f));
             p.SetPositionImmediate(_queueSlots[nextSlot].anchoredPosition);
+            p.SetColor(Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.5f, 1f));
+            p.gameObject.SetActive(true);
             _activeQueue.Add(p);
-        }
-
-        private void BuildPool()
-        {
-            for (int i = 0; i < _poolSize; i++)
-            {
-                PassengerUIVisual p = Instantiate(_passengerTemplate, transform, false);
-                p.gameObject.SetActive(false);
-                _pool.Add(p);
-            }
         }
 
         private void ActivatePassenger(int slotIndex)
         {
-            if (slotIndex >= _pool.Count) return;
+            if (_passengerPool == null) return;
             if (slotIndex >= _queueSlots.Length) return;
 
-            PassengerUIVisual p = _pool[slotIndex];
-            p.gameObject.SetActive(true);
-            p.SetColor(Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.5f, 1f));
-            p.SetPositionImmediate(_queueSlots[slotIndex].anchoredPosition);
-            _activeQueue.Add(p);
-        }
+            if (!_passengerPool.TryGet(out PassengerUIVisual p))
+                return;
 
-        private PassengerUIVisual GetInactivePassenger()
-        {
-            for (int i = 0; i < _pool.Count; i++)
-            {
-                if (!_pool[i].gameObject.activeInHierarchy)
-                    return _pool[i];
-            }
-            PassengerUIVisual p = Instantiate(_passengerTemplate, transform, false);
-            p.gameObject.SetActive(false);
-            _pool.Add(p);
-            return p;
+            p.transform.SetParent(transform, false);
+            p.SetPositionImmediate(_queueSlots[slotIndex].anchoredPosition);
+            p.SetColor(Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.5f, 1f));
+            p.gameObject.SetActive(true);
+            _activeQueue.Add(p);
         }
     }
 }

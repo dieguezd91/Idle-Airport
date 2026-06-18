@@ -1,0 +1,533 @@
+fileFormatVersion: 2
+guid: aee9a34e011bdec44a8ccaa5de6e63da
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -3485704684785582550
+    second: Logos_-_Orbital_Byte-02_0
+  - first:
+      213: -2110525246511864266
+    second: Logos_-_Orbital_Byte-02_1
+  - first:
+      213: -8666467656454696865
+    second: Logos_-_Orbital_Byte-02_2
+  - first:
+      213: 358599862938970803
+    second: Logos_-_Orbital_Byte-02_3
+  - first:
+      213: 572320983925248843
+    second: Logos_-_Orbital_Byte-02_4
+  - first:
+      213: -1704557970039363849
+    second: Logos_-_Orbital_Byte-02_5
+  - first:
+      213: -5119823483676724130
+    second: Logos_-_Orbital_Byte-02_6
+  - first:
+      213: 7732616712597015497
+    second: Logos_-_Orbital_Byte-02_7
+  - first:
+      213: 3051109616625732636
+    second: Logos_-_Orbital_Byte-02_8
+  - first:
+      213: -8646794260508188352
+    second: Logos_-_Orbital_Byte-02_9
+  - first:
+      213: 1823691553318661919
+    second: Logos_-_Orbital_Byte-02_10
+  - first:
+      213: -1951248621923771744
+    second: Logos_-_Orbital_Byte-02_11
+  - first:
+      213: -7902308543667463034
+    second: Logos_-_Orbital_Byte-02_12
+  - first:
+      213: 3978288164348201560
+    second: Logos_-_Orbital_Byte-02_13
+  - first:
+      213: 6506733240657341270
+    second: Logos_-_Orbital_Byte-02_14
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Logos_-_Orbital_Byte-02_0
+      rect:
+        serializedVersion: 2
+        x: 793
+        y: 1700
+        width: 2915
+        height: 1247
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2eb077ae0a40afc0800000000000000
+      internalID: -3485704684785582550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Logos_-_Orbital_Byte-02_1
+      rect:
+        serializedVersion: 2
+        x: 1451
+        y: 1780
+        width: 1673
+        height: 1659
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 636aa286878e5b2e0800000000000000
+      internalID: -2110525246511864266
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Logos_-_Orbital_Byte-02_2
+      rect:
+        serializedVersion: 2
+        x: 2360
+        y: 1628
+        width: 440
+        height: 284
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f501b9755958ab780800000000000000
+      internalID: -8666467656454696865
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Logos_-_Orbital_Byte-02_3
+      rect:
+        serializedVersion: 2
+        x: 1577
+        y: 1597
+        width: 317
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ba2bf6eca00af400800000000000000
+      internalID: 358599862938970803
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Logos_-_Orbital_Byte-02_4
+      rect:
+        serializedVersion: 2
+        x: 440
+        y: 1153
+        width: 321
+        height: 252
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b43dd5017ea41f700800000000000000
+      internalID: 572320983925248843
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Logos_-_Orbital_Byte-02_5
+      rect:
+        serializedVersion: 2
+        x: 798
+        y: 1153
+        width: 325
+        height: 252
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f62eb0be813858e0800000000000000
+      internalID: -1704557970039363849
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Logos_-_Orbital_Byte-02_6
+      rect:
+        serializedVersion: 2
+        x: 1155
+        y: 1153
+        width: 322
+        height: 252
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e54feb6eaabb2f8b0800000000000000
+      internalID: -5119823483676724130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Logos_-_Orbital_Byte-02_7
+      rect:
+        serializedVersion: 2
+        x: 1514
+        y: 1153
+        width: 66
+        height: 252
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9cb08925ee5cf4b60800000000000000
+      internalID: 7732616712597015497
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Logos_-_Orbital_Byte-02_8
+      rect:
+        serializedVersion: 2
+        x: 1614
+        y: 1153
+        width: 291
+        height: 252
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1c41c5e708b75a20800000000000000
+      internalID: 3051109616625732636
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Logos_-_Orbital_Byte-02_9
+      rect:
+        serializedVersion: 2
+        x: 1834
+        y: 1153
+        width: 370
+        height: 252
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 041e588ce6a600880800000000000000
+      internalID: -8646794260508188352
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Logos_-_Orbital_Byte-02_10
+      rect:
+        serializedVersion: 2
+        x: 2219
+        y: 1153
+        width: 278
+        height: 252
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f1f607f2ecd0f4910800000000000000
+      internalID: 1823691553318661919
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Logos_-_Orbital_Byte-02_11
+      rect:
+        serializedVersion: 2
+        x: 2682
+        y: 1153
+        width: 322
+        height: 252
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0aa53cd67b5cbe4e0800000000000000
+      internalID: -1951248621923771744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Logos_-_Orbital_Byte-02_12
+      rect:
+        serializedVersion: 2
+        x: 3028
+        y: 1153
+        width: 310
+        height: 252
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68c9a2d6f3c555290800000000000000
+      internalID: -7902308543667463034
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Logos_-_Orbital_Byte-02_13
+      rect:
+        serializedVersion: 2
+        x: 3373
+        y: 1153
+        width: 291
+        height: 252
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85a8d12f108b53730800000000000000
+      internalID: 3978288164348201560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Logos_-_Orbital_Byte-02_14
+      rect:
+        serializedVersion: 2
+        x: 3700
+        y: 1153
+        width: 322
+        height: 252
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65b6b91886f8c4a50800000000000000
+      internalID: 6506733240657341270
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Logos_-_Orbital_Byte-02_0: -3485704684785582550
+      Logos_-_Orbital_Byte-02_1: -2110525246511864266
+      Logos_-_Orbital_Byte-02_10: 1823691553318661919
+      Logos_-_Orbital_Byte-02_11: -1951248621923771744
+      Logos_-_Orbital_Byte-02_12: -7902308543667463034
+      Logos_-_Orbital_Byte-02_13: 3978288164348201560
+      Logos_-_Orbital_Byte-02_14: 6506733240657341270
+      Logos_-_Orbital_Byte-02_2: -8666467656454696865
+      Logos_-_Orbital_Byte-02_3: 358599862938970803
+      Logos_-_Orbital_Byte-02_4: 572320983925248843
+      Logos_-_Orbital_Byte-02_5: -1704557970039363849
+      Logos_-_Orbital_Byte-02_6: -5119823483676724130
+      Logos_-_Orbital_Byte-02_7: 7732616712597015497
+      Logos_-_Orbital_Byte-02_8: 3051109616625732636
+      Logos_-_Orbital_Byte-02_9: -8646794260508188352
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

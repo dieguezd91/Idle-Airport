@@ -218,13 +218,13 @@ namespace IdleAirport.GameCore
                 : baseIncome + shopsBonus;
 
             if (_basePassengerIncomeText != null)
-                _basePassengerIncomeText.text = $"Base: +${NumberFormatter.Format(baseIncome, 2)}/passenger";
+                _basePassengerIncomeText.text = $"Base: ${NumberFormatter.Format(baseIncome, 2)}/pax";
 
             if (_shopBonusIncomeText != null)
-                _shopBonusIncomeText.text = $"Shops: +${NumberFormatter.Format(shopsBonus, 2)}/passenger";
+                _shopBonusIncomeText.text = $"Shops: ${NumberFormatter.Format(shopsBonus, 2)}/pax";
 
             if (_totalPassengerIncomeText != null)
-                _totalPassengerIncomeText.text = $"Total: +${NumberFormatter.Format(totalIncome, 2)}/passenger";
+                _totalPassengerIncomeText.text = $"Total: ${NumberFormatter.Format(totalIncome, 2)}/pax";
         }
 
         private void UpdateUpgradeUI()
