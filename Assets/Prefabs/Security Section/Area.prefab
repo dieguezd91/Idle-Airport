@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4287076987381361000}
   - component: {fileID: 6976126129336333039}
   - component: {fileID: 3086214229576767014}
+  - component: {fileID: 2798369569155169223}
   m_Layer: 5
   m_Name: GameObject
   m_TagString: Untagged
@@ -69,6 +70,40 @@ MonoBehaviour:
   pauseAtStart: 1.5
   pauseAtEnd: 0.5
   loopGap: 60
+  onScrollEnd:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 2798369569155169223}
+        m_TargetAssemblyTypeName: IdleAirport.UI.TextRandomizerUI, Assembly-CSharp
+        m_MethodName: RandomizeText
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &2798369569155169223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2005444233528769800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c72755356b144b878b9e0ea526ca2d84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scrollingText: {fileID: 3086214229576767014}
+  label: {fileID: 7047912103214370467}
+  entries:
+  - 'ENYOY YOUR FLIGHT! DAYS SINCE LAST CRASH: 2'
+  - HAVE A NICE FLIGHT! 5059 CASUALITIES AND YOU'R NEXT!
+  - I HAVEN'T GONE TO THE BEATHROOM IN 42 HOURS, PLEASE SEND HELP
+  - ENYOY OUR VARIOUS SHOPS! GIVE US YOUR MONEY!
 --- !u!1 &5831095940187142999
 GameObject:
   m_ObjectHideFlags: 0
@@ -180,8 +215,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 508.10434, y: 0}
-  m_SizeDelta: {x: 1016.2087, y: 50}
+  m_AnchoredPosition: {x: 451.355, y: 0}
+  m_SizeDelta: {x: 902.71, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6438956619407413957
 CanvasRenderer:
@@ -211,7 +246,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'ENYOY YOUR FLIGHT! - DAYS SINCE LAST CRASH: 2'
+  m_text: HAVE A NICE FLIGHT! - 5059 CASUALITIES, YOU'R NEXT!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: db0e90977d132ab42b7da04112f8d49d, type: 2}
   m_sharedMaterial: {fileID: -2001969091867979513, guid: db0e90977d132ab42b7da04112f8d49d, type: 2}
