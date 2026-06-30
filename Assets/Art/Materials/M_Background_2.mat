@@ -40,7 +40,7 @@ Material:
     - _StencilOp: 0
     - _StencilReadMask: 255
     - _StencilWriteMask: 255
-    - _TileScale: 2.5
+    - _TileScale: 3
     - _UseUIAlphaClip: 0
     - _WallBorderColorScale: 0.75
     - _WallOffset: 0.09
