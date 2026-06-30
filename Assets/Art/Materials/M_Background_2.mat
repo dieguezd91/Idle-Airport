@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_Background_Shops
+  m_Name: M_Background_2
   m_Shader: {fileID: 4800000, guid: 012bb52ec135d9447b283e5b2c758fb6, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -45,15 +45,15 @@ Material:
     - _WallBorderColorScale: 0.75
     - _WallOffset: 0.09
     m_Colors:
-    - _BG1_Color: {r: 0.47058827, g: 0.36078432, b: 0.25882354, a: 1}
-    - _BG2_Color: {r: 0.5176471, g: 0.40000004, b: 0.2901961, a: 1}
-    - _Border_Color: {r: 0.24313727, g: 0.17254902, b: 0.121568635, a: 1}
+    - _BG1_Color: {r: 0.29803923, g: 0.30980393, b: 0.3254902, a: 1}
+    - _BG2_Color: {r: 0.3921569, g: 0.4039216, b: 0.41960788, a: 1}
+    - _Border_Color: {r: 0.20784315, g: 0.21176472, b: 0.227451, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _Color0: {r: 0, g: 0, b: 0, a: 1}
     - _Color1: {r: 1, g: 0, b: 0, a: 1}
     - _TileRange: {r: 1, g: 0.9, b: 0, a: 0}
     - _Vector0: {r: 0, g: 0.09, b: 0, a: 0}
-    - _WallColor: {r: 0.41176474, g: 0.30980393, b: 0.22352943, a: 1}
+    - _WallColor: {r: 0.34074074, g: 0.34074074, b: 0.368, a: 1}
     - _Wall_Color: {r: 0.5529412, g: 0.5529412, b: 0.5529412, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

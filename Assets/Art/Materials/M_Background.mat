@@ -45,15 +45,15 @@ Material:
     - _WallBorderColorScale: 0.75
     - _WallOffset: 0.09
     m_Colors:
-    - _BG1_Color: {r: 0.7490196, g: 0.7490196, b: 0.7490196, a: 1}
-    - _BG2_Color: {r: 0.6509804, g: 0.6509804, b: 0.6509804, a: 1}
-    - _Border_Color: {r: 0.27843136, g: 0.27843136, b: 0.27843136, a: 1}
+    - _BG1_Color: {r: 0.427451, g: 0.40784317, b: 0.3803922, a: 1}
+    - _BG2_Color: {r: 0.2784314, g: 0.27450982, b: 0.27058825, a: 1}
+    - _Border_Color: {r: 0.09411766, g: 0.09411766, b: 0.09019608, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _Color0: {r: 0, g: 0, b: 0, a: 1}
     - _Color1: {r: 1, g: 0, b: 0, a: 1}
     - _TileRange: {r: 1, g: 0.9, b: 0, a: 0}
     - _Vector0: {r: 0, g: 0.09, b: 0, a: 0}
-    - _WallColor: {r: 0.55294114, g: 0.55294114, b: 0.55294114, a: 1}
+    - _WallColor: {r: 0.33333334, g: 0.32941177, b: 0.32941177, a: 1}
     - _Wall_Color: {r: 0.5529412, g: 0.5529412, b: 0.5529412, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

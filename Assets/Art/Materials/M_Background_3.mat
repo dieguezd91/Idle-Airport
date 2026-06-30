@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_Glow
-  m_Shader: {fileID: 4800000, guid: 47f646c1442a84548a3da707b476f3c5, type: 3}
+  m_Name: M_Background_3
+  m_Shader: {fileID: 4800000, guid: 012bb52ec135d9447b283e5b2c758fb6, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -29,34 +29,31 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _BorderColor: 0.75
+    - _BorderThickness: 0.030065876
     - _ColorMask: 15
-    - _Float1: 0.63
-    - _H: 3.09
-    - _Intensity: 6.67
-    - _MaskRadius: 0.66
-    - _MaskSharpness: 2.78
-    - _NoiseIntensity: 0.025
-    - _NoiseIntensity1: 0.35
-    - _NoiseScale: 4.1
-    - _NoiseScale1: 0.49
-    - _PixelDensity: 40
-    - _R: 252.1
-    - _Radius: 0.15
-    - _Sharpness: 24.73
-    - _Spikes: 5
+    - _Float0: 0.02
+    - _Float1: 0.025
+    - _Float2: 0.75
     - _Stencil: 0
     - _StencilComp: 8
     - _StencilOp: 0
     - _StencilReadMask: 255
     - _StencilWriteMask: 255
+    - _TileScale: 2.5
     - _UseUIAlphaClip: 0
+    - _WallBorderColorScale: 0.75
+    - _WallOffset: 0.09
     m_Colors:
+    - _BG1_Color: {r: 0.47058827, g: 0.36078432, b: 0.25882354, a: 1}
+    - _BG2_Color: {r: 0.5176471, g: 0.40000004, b: 0.2901961, a: 1}
+    - _Border_Color: {r: 0.24313727, g: 0.17254902, b: 0.121568635, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _Color0: {r: 0.8553459, g: 0.85054934, b: 0.81499934, a: 0}
-    - _Color1: {r: 0.9685534, g: 0.9685534, b: 0.9685534, a: 0}
-    - _DisplacementOffset: {r: 0, g: 0, b: 0, a: 0}
-    - _Offset: {r: 0.5, g: 0.5, b: 0, a: 0}
-    - _Vector0: {r: 0.43, g: 1.3, b: 0, a: 0}
-    - _Vector1: {r: -0.025, g: 0, b: 0, a: 0}
+    - _Color0: {r: 0, g: 0, b: 0, a: 1}
+    - _Color1: {r: 1, g: 0, b: 0, a: 1}
+    - _TileRange: {r: 1, g: 0.9, b: 0, a: 0}
+    - _Vector0: {r: 0, g: 0.09, b: 0, a: 0}
+    - _WallColor: {r: 0.41176474, g: 0.30980393, b: 0.22352943, a: 1}
+    - _Wall_Color: {r: 0.5529412, g: 0.5529412, b: 0.5529412, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
