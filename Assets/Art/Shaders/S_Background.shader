@@ -70,7 +70,7 @@ Shader "S_Background"
             #pragma multi_compile_local _ UNITY_UI_CLIP_RECT
             #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
 
-            #include "Functions/TiledGrid.hlsl"
+            #include "HLSL/TiledGrid.hlsl"
             #define ASE_NEEDS_TEXTURE_COORDINATES0
             #define ASE_NEEDS_FRAG_TEXTURE_COORDINATES0
 
@@ -232,7 +232,7 @@ Node;AmplifyShaderEditor.SamplerNode, AmplifyShaderEditor, Version=0.0.0.0, Cult
 Node;AmplifyShaderEditor.CommentaryNode, AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;92;-2416,1744;Inherit;False;1028;338.95;Wall;8;87;86;83;85;77;88;89;90;;1,1,1,1;0;0
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode, AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;65;-1984,-80;Inherit;False;2;2;0;FLOAT2;0,0;False;1;FLOAT;0;False;1;FLOAT2;0
 Node;AmplifyShaderEditor.LerpOp, AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;82;-112,-656;Inherit;False;3;0;FLOAT;0;False;1;FLOAT;0;False;2;FLOAT;0;False;1;FLOAT;0
-Node;AmplifyShaderEditor.ColorNode, AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;37;-2128,832;Inherit;False;Property;_WallColor;Wall Color;4;0;Create;True;0;0;0;False;0;False;0,0,0,1;0.5529412,0.5529412,0.5529412,1;True;True;0;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
+Node;AmplifyShaderEditor.ColorNode, AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;37;-2128,832;Inherit;False;Property;_WallColor;Wall Color;4;0;Create;True;0;0;0;False;0;False;0,0,0,1;0.5529411,0.5529411,0.5529411,1;True;True;0;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
 Node;AmplifyShaderEditor.CommentaryNode, AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;69;-2448,1136;Inherit;False;1057.554;556.1539;Background 1;9;59;52;53;55;57;58;56;68;70;;1,1,1,1;0;0
 Node;AmplifyShaderEditor.ColorNode, AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;32;-2128,208;Inherit;False;Property;_BG1_Color;BG1_Color;0;0;Create;True;0;0;0;False;0;False;0,0,0,1;0.7490196,0.7490196,0.7490196,1;True;True;0;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
 Node;AmplifyShaderEditor.RegisterLocalVarNode, AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;66;-1824,-96;Inherit;False;scaledWorldUV;-1;True;1;0;FLOAT2;0,0;False;1;FLOAT2;0
@@ -338,4 +338,4 @@ WireConnection;29;1;44;0
 WireConnection;29;2;43;0
 WireConnection;0;0;29;0
 ASEEND*/
-//CHKSM=0C5655B7771BF6181E20CDCBF75AA9F7E6BBAF0C
+//CHKSM=04CE972FFFC0D45CFB9F050C9A4F928C6A311E72

@@ -1,5 +1,5 @@
 #ifndef TILED_GRID_INCLUDED
-#define CC_GLASS_INCLUDED
+#define TILED_GRID_INCLUDED
 
 inline float4 tiled_grid(
     const float2 uv,
