@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_Arrow
-  m_Shader: {fileID: 4800000, guid: d3007f619825e004e9028218853c5be3, type: 3}
+  m_Name: M_Title
+  m_Shader: {fileID: 4800000, guid: 2f0f727d5762a86448eb801af7a8f243, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -27,26 +27,30 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _TextureSample1:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _Amplitude: 0.06
     - _ColorMask: 15
-    - _Float0: 0.06
-    - _Float1: 7
-    - _Float3: 0.12
+    - _Float0: 32
+    - _Frequency: 8
+    - _Noise: 0.01
+    - _NoiseScale: 20
+    - _PixelDencity: 64
+    - _Spacing: 5
+    - _Speed: -2
+    - _Speed1: 2
     - _Stencil: 0
     - _StencilComp: 8
     - _StencilOp: 0
     - _StencilReadMask: 255
     - _StencilWriteMask: 255
+    - _Strength: 0.8
+    - _Thick: 0.18
+    - _Thickness: 0.6
     - _UseUIAlphaClip: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _Color0: {r: 0, g: 0.16929506, b: 0.7106918, a: 1}
-    - _Color1: {r: 0, g: 0.9124763, b: 1, a: 1}
-    - _Vector1: {r: 0, g: 0.026, b: 0, a: 0}
+    - _Color0: {r: 0.8301887, g: 0.8301887, b: 0.8301887, a: 0}
+    - _Offset: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
