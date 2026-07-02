@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System;
+using IdleAirport.GameCore.Prestige;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace IdleAirport.GameCore
 {
-    public sealed class WaitingRoomUIController : MonoBehaviour
+    public sealed class WaitingRoomUIController : MonoBehaviour, IPrestigeResettable
     {
         [Header("Settings")]
         [SerializeField] private Vector2 _areaSize = new Vector2(400f, 200f);
@@ -27,6 +28,13 @@ namespace IdleAirport.GameCore
         private int _reservedSlots;
         private float _boardingTimer;
         private bool _wasFull;
+        private Vector2 _baseAreaSize;
+        private float _baseCellSize;
+        private int _baseColumns;
+        private int _baseRows;
+        private int _baseMaxPassengers;
+        private bool _hasBaseLayout;
+        private bool _isPrestigeBoardingLayoutApplied;
 
         public event Action<int, int, int> OnOccupancyChanged;
         public event Action<int> OnPassengersBoarded;
@@ -55,10 +63,13 @@ namespace IdleAirport.GameCore
         }
         public int CurrentCount => _passengers.Count;
         public int ReservedCount => _reservedSlots;
+        public Vector2 AreaSize => _areaSize;
+        public bool IsPrestigeBoardingLayoutApplied => _isPrestigeBoardingLayoutApplied;
 
         private void Awake()
         {
             _container = GetComponent<RectTransform>();
+            CacheBaseLayout();
             ValidateCapacityConfiguration();
             NotifyOccupancyChanged();
         }
@@ -68,6 +79,8 @@ namespace IdleAirport.GameCore
             _columns = Mathf.Max(1, _columns);
             _rows = Mathf.Max(1, _rows);
             _maxPassengers = Mathf.Max(0, _maxPassengers);
+            _cellSize = Mathf.Max(1f, _cellSize);
+            _areaSize = new Vector2(Mathf.Max(1f, _areaSize.x), Mathf.Max(1f, _areaSize.y));
             _boardingInterval = Mathf.Max(0.1f, _boardingInterval);
             _passengersPerBoarding = Mathf.Max(1, _passengersPerBoarding);
         }
@@ -83,6 +96,64 @@ namespace IdleAirport.GameCore
                 _boardingTimer -= _boardingInterval;
                 BoardPassengers();
             }
+        }
+
+        public void SetAreaSize(Vector2 areaSize)
+        {
+            _areaSize = new Vector2(Mathf.Max(1f, areaSize.x), Mathf.Max(1f, areaSize.y));
+            ReapplyGridPositions();
+        }
+
+        public void ApplyPrestigeBoardingLayout()
+        {
+            ApplyPrestigeBoardingLayout(true);
+        }
+
+        public void ApplyPrestigeBoardingLayout(bool enabled)
+        {
+            CacheBaseLayout();
+
+            if (!enabled)
+            {
+                _areaSize = _baseAreaSize;
+                _cellSize = _baseCellSize;
+                _columns = _baseColumns;
+                _rows = _baseRows;
+                _maxPassengers = _baseMaxPassengers;
+                _isPrestigeBoardingLayoutApplied = false;
+                ReapplyGridPositions();
+                NotifyOccupancyChanged();
+                return;
+            }
+
+            int baseCapacity = _baseMaxPassengers > 0
+                ? Mathf.Min(_baseMaxPassengers, _baseColumns * _baseRows)
+                : _baseColumns * _baseRows;
+            int targetCapacity = Mathf.Max(baseCapacity + 1, Mathf.CeilToInt(baseCapacity * 1.5f));
+            int targetColumns = Mathf.Max(_baseColumns + 1, Mathf.CeilToInt(_baseColumns * 4f / 3f));
+            int targetRows = Mathf.CeilToInt(targetCapacity / (float)targetColumns);
+
+            _areaSize = _baseAreaSize;
+            _columns = Mathf.Max(1, targetColumns);
+            _rows = Mathf.Max(1, targetRows);
+            _maxPassengers = Mathf.Min(targetCapacity, _columns * _rows);
+            _cellSize = CalculatePrestigeCellSize(_columns, _rows);
+            _isPrestigeBoardingLayoutApplied = true;
+
+            ReapplyGridPositions();
+            NotifyOccupancyChanged();
+        }
+
+        public void ResetForPrestige()
+        {
+            for (int i = 0; i < _passengers.Count; i++)
+                _passengers[i]?.Recycle();
+
+            _passengers.Clear();
+            _reservedSlots = 0;
+            _boardingTimer = 0f;
+            _wasFull = false;
+            NotifyOccupancyChanged();
         }
 
         public bool TryReceivePassenger(PassengerUIVisual passenger)
@@ -221,6 +292,31 @@ namespace IdleAirport.GameCore
             return new Vector2(
                 startX + col * _cellSize,
                 startY - row * _cellSize);
+        }
+
+        private float CalculatePrestigeCellSize(int columns, int rows)
+        {
+            float widthBasedSize = columns > 1
+                ? (_baseAreaSize.x * 0.92f) / (columns - 1)
+                : _baseCellSize;
+            float heightBasedSize = rows > 1
+                ? (_baseAreaSize.y * 0.92f) / rows
+                : _baseCellSize;
+            float targetSize = Mathf.Min(_baseCellSize * 0.8f, widthBasedSize, heightBasedSize);
+            return Mathf.Max(20f, targetSize);
+        }
+
+        private void CacheBaseLayout()
+        {
+            if (_hasBaseLayout)
+                return;
+
+            _baseAreaSize = _areaSize;
+            _baseCellSize = _cellSize;
+            _baseColumns = Mathf.Max(1, _columns);
+            _baseRows = Mathf.Max(1, _rows);
+            _baseMaxPassengers = Mathf.Max(0, _maxPassengers);
+            _hasBaseLayout = true;
         }
 
         private void ValidateCapacityConfiguration()

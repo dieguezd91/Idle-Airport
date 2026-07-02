@@ -11,6 +11,9 @@ namespace IdleAirport.GameCore
         [SerializeField] private RectTransform _manualFeedbackTarget;
         [SerializeField] private RectTransform _autoFeedbackTarget;
 
+        [Header("Passenger Reward Feedback")]
+        [SerializeField] private Vector3 _passengerRewardFeedbackSpawnOffset = new(0f, 32f, 0f);
+
         [Header("Success Feedback")]
         [SerializeField] private float _pulseDuration = 0.18f;
         [SerializeField] private float _pulseScale = 1.06f;
@@ -92,7 +95,7 @@ namespace IdleAirport.GameCore
         private void UpdateAIScannerVisualState()
         {
             if (_autoFeedbackTarget == null || _autoRoutine != null) return;
-            
+
             var img = _autoFeedbackTarget.GetComponent<UnityEngine.UI.Image>();
             if (img == null) return;
 
@@ -178,14 +181,19 @@ namespace IdleAirport.GameCore
         {
             PlayManualSuccess();
             if (_floatingRewardText != null && data.BaseReward > 0.0)
-                _floatingRewardText.ShowManualReward(data.FeedbackWorldPosition, data.BaseReward);
+                _floatingRewardText.ShowManualReward(GetPassengerRewardFeedbackPosition(data), data.BaseReward);
         }
 
         private void HandleAutoProcessed(PassengerProcessor.PassengerProcessFeedbackData data)
         {
             PlayAutoSuccess();
             if (_floatingRewardText != null && data.BaseReward > 0.0)
-                _floatingRewardText.ShowManualReward(data.FeedbackWorldPosition, data.BaseReward);
+                _floatingRewardText.ShowManualReward(GetPassengerRewardFeedbackPosition(data), data.BaseReward);
+        }
+
+        private Vector3 GetPassengerRewardFeedbackPosition(PassengerProcessor.PassengerProcessFeedbackData data)
+        {
+            return data.FeedbackWorldPosition + _passengerRewardFeedbackSpawnOffset;
         }
 
         private void HandleProcessFailed(PassengerProcessor.PassengerProcessFailedFeedbackData data)

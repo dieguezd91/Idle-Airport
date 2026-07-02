@@ -1,4 +1,5 @@
 using System;
+using IdleAirport.GameCore.Prestige;
 using UnityEngine;
 
 namespace IdleAirport.GameCore
@@ -49,7 +50,7 @@ namespace IdleAirport.GameCore
         SpendFailed
     }
 
-    public sealed class AITSAScannerUpgrade : MonoBehaviour
+    public sealed class AITSAScannerUpgrade : MonoBehaviour, IPrestigeResettable
     {
         [Header("References")]
         [SerializeField] private EconomyController _economyController;
@@ -72,6 +73,8 @@ namespace IdleAirport.GameCore
         [SerializeField] private float _durabilityCostMultiplier = 1.25f;
         [SerializeField] private int _durabilityUpgradeCount;
         [SerializeField] private int _ownedCount;
+
+        private int _baseTokensPerScanner;
 
         public event Action<AITSAUpgradePurchaseResult> OnPurchaseAttempted;
         public event Action<int, int> OnAITokensChanged;
@@ -102,6 +105,7 @@ namespace IdleAirport.GameCore
 
         private void Awake()
         {
+            _baseTokensPerScanner = _tokensPerScanner;
             ClampState();
         }
 
@@ -291,6 +295,24 @@ namespace IdleAirport.GameCore
             ApplyCurrentUpgradeState();
             NotifyTokenAndScannerChanges(previousTokens, previousEffective);
             return true;
+        }
+
+        public void ResetForPrestige()
+        {
+            int previousTokens = CurrentTokens;
+            int previousEffective = EffectiveScannerCount;
+
+            _ownedCount = 0;
+            _currentTokens = 0;
+            _tokenPacksPurchased = 0;
+            _durabilityUpgradeCount = 0;
+            _tokensPerScanner = Mathf.Max(1, _baseTokensPerScanner);
+
+            if (_passengerProcessor != null)
+                _passengerProcessor.DisableAIScanner();
+
+            NotifyTokenAndScannerChanges(previousTokens, previousEffective);
+            OnPurchaseAttempted?.Invoke(AITSAUpgradePurchaseResult.SuccessFirstPurchase);
         }
 
         private void ApplyCurrentUpgradeState()

@@ -11,7 +11,7 @@ namespace IdleAirport.GameCore
         [SerializeField] private int _poolSize = 8;
 
         [Header("Motion")]
-        [SerializeField] private Vector2 _offset = new(0f, 36f);
+        [SerializeField] private Vector2 _offset = new(0f, 56f);
         [SerializeField] private float _duration = 0.75f;
 
         [Header("Text")]

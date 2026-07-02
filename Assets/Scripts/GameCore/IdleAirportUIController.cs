@@ -1,4 +1,5 @@
 using System.Collections;
+using IdleAirport.GameCore.Prestige;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -47,6 +48,7 @@ namespace IdleAirport.GameCore
         private string _lastFeedbackMessage;
         private float _lastFeedbackTime;
         private bool _suppressAIStateTransitionFeedback;
+        private AirportPrestigeHudPresenter _prestigeHudPresenter;
 
         private TextMeshProUGUI _nextObjectiveText;
         private double _lastMoneyValue = -1.0;
@@ -58,6 +60,16 @@ namespace IdleAirport.GameCore
         private void Awake()
         {
             ValidateReferences();
+            _prestigeHudPresenter = FindFirstObjectByType<AirportPrestigeHudPresenter>();
+            if (_prestigeHudPresenter == null)
+            {
+                AirportPrestigeService prestigeService = FindFirstObjectByType<AirportPrestigeService>();
+                if (prestigeService != null && _passengersProcessedText != null)
+                {
+                    _prestigeHudPresenter = gameObject.AddComponent<AirportPrestigeHudPresenter>();
+                    _prestigeHudPresenter.Configure(prestigeService, _passengersProcessedText, null, null);
+                }
+            }
             if (_moneyText != null)
             {
                 _moneyTextBaseScale = _moneyText.transform.localScale;
@@ -399,6 +411,9 @@ namespace IdleAirport.GameCore
 
         private void OnPassengersChanged(int passengers)
         {
+            if (_prestigeHudPresenter != null)
+                return;
+
             if (_passengersProcessedText != null)
             {
                 _passengersProcessedText.text = $"{NumberFormatter.Format(passengers)}";

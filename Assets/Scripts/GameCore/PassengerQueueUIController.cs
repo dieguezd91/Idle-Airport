@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using IdleAirport.GameCore.Prestige;
 using UnityEngine;
 
 namespace IdleAirport.GameCore
 {
-    public sealed class PassengerQueueUIController : MonoBehaviour
+    public sealed class PassengerQueueUIController : MonoBehaviour, IPrestigeResettable
     {
         [Header("References")]
         [SerializeField] private RectTransform[] _queueSlots;
@@ -41,6 +42,16 @@ namespace IdleAirport.GameCore
             ApplyStackOrdering();
 
             _isInitialized = true;
+        }
+
+        public void ResetForPrestige()
+        {
+            for (int i = 0; i < _activeQueue.Count; i++)
+                _activeQueue[i]?.Recycle();
+
+            _activeQueue.Clear();
+            _isInitialized = false;
+            InitializeQueue();
         }
 
         public bool TryDequeuePassenger(out PassengerUIVisual passenger)

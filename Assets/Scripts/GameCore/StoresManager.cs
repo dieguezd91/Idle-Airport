@@ -1,4 +1,5 @@
 using System;
+using IdleAirport.GameCore.Prestige;
 using UnityEngine;
 
 namespace IdleAirport.GameCore
@@ -13,7 +14,7 @@ namespace IdleAirport.GameCore
         SpendFailed
     }
 
-    public sealed class StoresManager : MonoBehaviour
+    public sealed class StoresManager : MonoBehaviour, IPrestigeResettable
     {
         [SerializeField] private EconomyController _economyController;
         [SerializeField] private Store[] _stores;
@@ -24,6 +25,11 @@ namespace IdleAirport.GameCore
 
         public Store[] Stores => _stores;
         public int StoreCount => _stores != null ? _stores.Length : 0;
+
+        private void Awake()
+        {
+            CaptureStoreBaselines();
+        }
 
         public double TotalPassengerIncomeBonus
         {
@@ -107,5 +113,25 @@ namespace IdleAirport.GameCore
         public bool CanPurchaseBusiness(int index) => CanPurchaseStore(index);
         public bool TryPurchaseBusiness(int index) => TryPurchaseStore(index);
         public bool TryUnlockBusiness(int index) => TryUnlockStore(index);
+
+        public void ResetForPrestige()
+        {
+            if (_stores == null)
+                return;
+
+            for (int i = 0; i < _stores.Length; i++)
+                _stores[i]?.ResetForPrestige();
+
+            OnBusinessesChanged?.Invoke();
+        }
+
+        private void CaptureStoreBaselines()
+        {
+            if (_stores == null)
+                return;
+
+            for (int i = 0; i < _stores.Length; i++)
+                _stores[i]?.CapturePrestigeBaseline();
+        }
     }
 }

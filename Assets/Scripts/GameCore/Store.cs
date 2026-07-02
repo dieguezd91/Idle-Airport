@@ -14,6 +14,9 @@ namespace IdleAirport.GameCore
         [SerializeField] private int _ownedCount;
         [SerializeField] private bool _isUnlocked;
 
+        private bool _initialIsUnlocked;
+        private bool _hasCapturedBaseline;
+
         public string Name => _name;
         public string Description => _description;
         public double IncomePerPassenger => _incomePerPassenger;
@@ -34,6 +37,22 @@ namespace IdleAirport.GameCore
         public void Unlock()
         {
             _isUnlocked = true;
+        }
+
+        public void CapturePrestigeBaseline()
+        {
+            if (_hasCapturedBaseline)
+                return;
+
+            _initialIsUnlocked = _isUnlocked;
+            _hasCapturedBaseline = true;
+        }
+
+        public void ResetForPrestige()
+        {
+            CapturePrestigeBaseline();
+            _ownedCount = 0;
+            _isUnlocked = _initialIsUnlocked;
         }
     }
 }
