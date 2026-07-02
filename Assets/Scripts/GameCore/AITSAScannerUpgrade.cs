@@ -52,6 +52,14 @@ namespace IdleAirport.GameCore
 
     public sealed class AITSAScannerUpgrade : MonoBehaviour, IPrestigeResettable
     {
+        private enum TokenChangeReason
+        {
+            None,
+            Consumed,
+            Refilled,
+            Reset
+        }
+
         [Header("References")]
         [SerializeField] private EconomyController _economyController;
         [SerializeField] private PassengerProcessor _passengerProcessor;
@@ -85,6 +93,11 @@ namespace IdleAirport.GameCore
         public event Action<AITokenPackPurchaseFailureReason> OnAITokenPurchaseFailed;
         public event Action<AIDurabilityPurchaseFailureReason> OnAIDurabilityPurchaseFailed;
 
+        public event Action<int, int> TokensChanged;
+        public event Action<int, int> TokensConsumed;
+        public event Action<int, int> TokensRefilled;
+        public event Action TokensEmpty;
+
         public float CurrentCost => _baseCost * Mathf.Pow(_costMultiplier, OwnedCount);
         public float TokenPackCost => _tokenPackBaseCost * Mathf.Pow(_tokenPackCostMultiplier, _tokenPacksPurchased);
         public float DurabilityUpgradeCost => _durabilityBaseCost * Mathf.Pow(_durabilityCostMultiplier, _durabilityUpgradeCount);
@@ -98,6 +111,7 @@ namespace IdleAirport.GameCore
         public int EffectiveScannerCount => CalculateEffectiveScannerCount();
         public bool HasTokens => CurrentTokens > 0;
         public bool CanAutoProcess => EffectiveScannerCount > 0;
+        public float TokenFill01 => MaxTokens <= 0 ? 0f : Mathf.Clamp01(CurrentTokens / (float)MaxTokens);
         public float CurrentProcessingDuration => CanAutoProcess ? GetProcessingDurationForScannerCount(EffectiveScannerCount) : 0f;
         public float CurrentPassengersPerSecond => CurrentProcessingDuration > 0f ? 1f / CurrentProcessingDuration : 0f;
         public float NextProcessingDuration => GetProcessingDurationForScannerCount(_ownedCount + 1);
@@ -183,13 +197,14 @@ namespace IdleAirport.GameCore
             }
 
             int previousTokens = CurrentTokens;
+            int previousMaxTokens = MaxTokens;
             int previousEffective = EffectiveScannerCount;
             bool wasInactive = _ownedCount == 0;
 
             _ownedCount++;
             _currentTokens = Mathf.Clamp(_currentTokens + TokensPerScanner, 0, MaxTokens);
             ApplyCurrentUpgradeState();
-            NotifyTokenAndScannerChanges(previousTokens, previousEffective);
+            NotifyTokenAndScannerChanges(previousTokens, previousMaxTokens, previousEffective, TokenChangeReason.Refilled);
 
             AITSAUpgradePurchaseResult result = wasInactive
                 ? AITSAUpgradePurchaseResult.SuccessFirstPurchase
@@ -232,12 +247,13 @@ namespace IdleAirport.GameCore
             }
 
             int previousTokens = CurrentTokens;
+            int previousMaxTokens = MaxTokens;
             int previousEffective = EffectiveScannerCount;
 
             _tokenPacksPurchased++;
             _currentTokens = Mathf.Clamp(_currentTokens + TokenPackSize, 0, MaxTokens);
             ApplyCurrentUpgradeState();
-            NotifyTokenAndScannerChanges(previousTokens, previousEffective);
+            NotifyTokenAndScannerChanges(previousTokens, previousMaxTokens, previousEffective, TokenChangeReason.Refilled);
 
             OnAITokenPackPurchased?.Invoke();
             return AITokenPackPurchaseResult.Success;
@@ -271,13 +287,14 @@ namespace IdleAirport.GameCore
             }
 
             int previousTokens = CurrentTokens;
+            int previousMaxTokens = MaxTokens;
             int previousEffective = EffectiveScannerCount;
 
             _durabilityUpgradeCount++;
             _tokensPerScanner += TokensPerDurabilityUpgrade;
             _currentTokens = Mathf.Clamp(_currentTokens + _ownedCount * TokensPerDurabilityUpgrade, 0, MaxTokens);
             ApplyCurrentUpgradeState();
-            NotifyTokenAndScannerChanges(previousTokens, previousEffective);
+            NotifyTokenAndScannerChanges(previousTokens, previousMaxTokens, previousEffective, TokenChangeReason.Refilled);
 
             OnAIDurabilityUpgraded?.Invoke();
             return AIDurabilityPurchaseResult.Success;
@@ -289,17 +306,19 @@ namespace IdleAirport.GameCore
                 return false;
 
             int previousTokens = CurrentTokens;
+            int previousMaxTokens = MaxTokens;
             int previousEffective = EffectiveScannerCount;
 
             _currentTokens = Mathf.Clamp(_currentTokens - 1, 0, MaxTokens);
             ApplyCurrentUpgradeState();
-            NotifyTokenAndScannerChanges(previousTokens, previousEffective);
+            NotifyTokenAndScannerChanges(previousTokens, previousMaxTokens, previousEffective, TokenChangeReason.Consumed);
             return true;
         }
 
         public void ResetForPrestige()
         {
             int previousTokens = CurrentTokens;
+            int previousMaxTokens = MaxTokens;
             int previousEffective = EffectiveScannerCount;
 
             _ownedCount = 0;
@@ -311,7 +330,7 @@ namespace IdleAirport.GameCore
             if (_passengerProcessor != null)
                 _passengerProcessor.DisableAIScanner();
 
-            NotifyTokenAndScannerChanges(previousTokens, previousEffective);
+            NotifyTokenAndScannerChanges(previousTokens, previousMaxTokens, previousEffective, TokenChangeReason.Reset);
             OnPurchaseAttempted?.Invoke(AITSAUpgradePurchaseResult.SuccessFirstPurchase);
         }
 
@@ -328,19 +347,38 @@ namespace IdleAirport.GameCore
             }
         }
 
-        private void NotifyTokenAndScannerChanges(int previousTokens, int previousEffective)
+        private void NotifyTokenAndScannerChanges(
+            int previousTokens,
+            int previousMaxTokens,
+            int previousEffective,
+            TokenChangeReason reason)
         {
             int currentTokens = CurrentTokens;
+            int currentMaxTokens = MaxTokens;
             int currentEffective = EffectiveScannerCount;
+            bool tokensChanged = previousTokens != currentTokens;
+            bool maxTokensChanged = previousMaxTokens != currentMaxTokens;
 
-            if (previousTokens != currentTokens)
+            if (tokensChanged)
                 OnAITokensChanged?.Invoke(previousTokens, currentTokens);
+
+            if (tokensChanged || maxTokensChanged)
+                TokensChanged?.Invoke(currentTokens, currentMaxTokens);
+
+            if (tokensChanged && reason == TokenChangeReason.Consumed && currentTokens < previousTokens)
+                TokensConsumed?.Invoke(previousTokens, currentTokens);
+
+            if (tokensChanged && reason == TokenChangeReason.Refilled && currentTokens > previousTokens)
+                TokensRefilled?.Invoke(previousTokens, currentTokens);
 
             if (previousEffective != currentEffective)
                 OnAIEffectiveScannerCountChanged?.Invoke(previousEffective, currentEffective);
 
-            if (previousTokens > 0 && currentTokens == 0)
+            if (tokensChanged && reason != TokenChangeReason.Reset && previousTokens > 0 && currentTokens == 0)
+            {
                 OnAITokensDepleted?.Invoke();
+                TokensEmpty?.Invoke();
+            }
         }
 
         private bool HasRequiredReferences()
