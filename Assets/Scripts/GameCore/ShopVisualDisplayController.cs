@@ -28,11 +28,6 @@ namespace IdleAirport.GameCore
 
             _shopVisuals = new ShopVisualItemView[_storesManager.StoreCount];
             _storesManager.OnStorePurchased += HandleStorePurchased;
-            if (_passengerProcessor != null)
-            {
-                _passengerProcessor.OnPassengerManuallyProcessed += HandlePassengerProcessed;
-                _passengerProcessor.OnPassengerAutoProcessed += HandlePassengerProcessed;
-            }
 
             SyncFromCurrentState();
         }
@@ -41,12 +36,6 @@ namespace IdleAirport.GameCore
         {
             if (_storesManager != null)
                 _storesManager.OnStorePurchased -= HandleStorePurchased;
-
-            if (_passengerProcessor != null)
-            {
-                _passengerProcessor.OnPassengerManuallyProcessed -= HandlePassengerProcessed;
-                _passengerProcessor.OnPassengerAutoProcessed -= HandlePassengerProcessed;
-            }
         }
 
         private void HandleStorePurchased(int index, Store store)
@@ -54,14 +43,6 @@ namespace IdleAirport.GameCore
             ShopVisualItemView visual = CreateOrUpdateVisual(index, store);
             if (visual != null)
                 visual.PlayPurchasedFeedback();
-        }
-
-        private void HandlePassengerProcessed(PassengerProcessor.PassengerProcessFeedbackData data)
-        {
-            if (data.ShopBonus <= 0.0)
-                return;
-
-            PlayIncomeFeedback(data.ShopBonus);
         }
 
         public void PlayIncomeFeedback(double amount)
@@ -113,7 +94,7 @@ namespace IdleAirport.GameCore
             return _shopVisuals[index];
         }
 
-        private ShopVisualItemView GetNextOwnedVisual()
+        public ShopVisualItemView GetNextOwnedVisual()
         {
             if (_shopVisuals == null || _shopVisuals.Length == 0)
                 return null;

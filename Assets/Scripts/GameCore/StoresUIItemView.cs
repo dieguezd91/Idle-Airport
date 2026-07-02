@@ -21,7 +21,15 @@ namespace IdleAirport.GameCore
 
             SetText(_nameText, store.Name);
             SetText(_stateText, BuildStateText(store));
-            SetText(_actionText, BuildPriceText(store));
+
+            string actionText = string.Empty;
+            if (isUnlocked)
+            {
+                actionText = isPurchasable 
+                    ? $"${FormatCost(store.CurrentCost)}" 
+                    : $"Need ${FormatCost(store.CurrentCost)}";
+            }
+            SetText(_actionText, actionText);
             SetText(_iconText, BuildShortAcronym(store.Name));
 
             ApplyVisualState(visualState, isPurchasable);

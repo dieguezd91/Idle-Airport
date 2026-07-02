@@ -26,9 +26,11 @@ namespace IdleAirport.GameCore
         private readonly List<PassengerUIVisual> _passengers = new();
         private int _reservedSlots;
         private float _boardingTimer;
+        private bool _wasFull;
 
         public event Action<int, int, int> OnOccupancyChanged;
         public event Action<int> OnPassengersBoarded;
+        public event Action OnWaitingRoomFull;
 
         public int VisualCapacity => Mathf.Max(0, _columns * _rows);
         public int Capacity => _maxPassengers > 0 ? Mathf.Min(_maxPassengers, VisualCapacity) : VisualCapacity;
@@ -156,12 +158,49 @@ namespace IdleAirport.GameCore
             {
                 PassengerUIVisual p = _passengers[0];
                 _passengers.RemoveAt(0);
-                p.Recycle();
+                if (p != null)
+                {
+                    p.Recycle();
+                }
             }
 
             ReapplyGridPositions();
             NotifyOccupancyChanged();
             OnPassengersBoarded?.Invoke(boardedCount);
+        }
+
+        private System.Collections.IEnumerator AnimateBoardingAndRecycle(PassengerUIVisual passenger)
+        {
+            if (passenger == null) yield break;
+
+            Vector2 exitPos = new Vector2(_areaSize.x * 0.5f + 50f, 0f);
+            passenger.MoveTo(exitPos);
+
+            float duration = 0.35f;
+            float elapsed = 0f;
+
+            var canvasGroup = passenger.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+            {
+                canvasGroup = passenger.gameObject.AddComponent<CanvasGroup>();
+            }
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                if (canvasGroup != null)
+                {
+                    canvasGroup.alpha = 1f - (elapsed / duration);
+                }
+                yield return null;
+            }
+
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = 1f;
+            }
+
+            passenger.Recycle();
         }
 
         private void ReapplyGridPositions()
@@ -196,7 +235,17 @@ namespace IdleAirport.GameCore
 
         private void NotifyOccupancyChanged()
         {
-            OnOccupancyChanged?.Invoke(_passengers.Count, _reservedSlots, Capacity);
+            int current = _passengers.Count;
+            int capacity = Capacity;
+            bool isFull = current + _reservedSlots >= capacity;
+
+            if (isFull && !_wasFull)
+            {
+                OnWaitingRoomFull?.Invoke();
+            }
+            _wasFull = isFull;
+
+            OnOccupancyChanged?.Invoke(current, _reservedSlots, capacity);
         }
     }
 }

@@ -30,9 +30,21 @@ namespace IdleAirport.GameCore
                 ? $"+{upgrade.TokensPerDurabilityUpgrade}"
                 : string.Empty;
 
-            SetText(_nameText, Title);
+            string displayName = (hasScanner && upgrade.DurabilityUpgradeCount > 0)
+                ? $"{Title} <size=80%><color=#8ce6ff>(Lv. {upgrade.DurabilityUpgradeCount})</color></size>"
+                : Title;
+
+            string actionLabel = string.Empty;
+            if (hasScanner)
+            {
+                actionLabel = canPurchase 
+                    ? $"${FormatCost(upgrade.DurabilityUpgradeCost)}" 
+                    : $"Need ${FormatCost(upgrade.DurabilityUpgradeCost)}";
+            }
+
+            SetText(_nameText, displayName);
             SetText(_stateText, CombineLines(stateLabel, benefitLabel));
-            SetText(_actionText, hasScanner ? $"${FormatCost(upgrade.DurabilityUpgradeCost)}" : string.Empty);
+            SetText(_actionText, actionLabel);
             SetText(_iconText, BuildShortAcronym(Title));
             ApplyVisualState(visualState, canPurchase);
         }

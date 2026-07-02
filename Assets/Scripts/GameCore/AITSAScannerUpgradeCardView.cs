@@ -31,9 +31,13 @@ namespace IdleAirport.GameCore
                 ? $"+{upgrade.TokensPerScanner} {TokensLabel}"
                 : $"{upgrade.CurrentTokens}/{upgrade.MaxTokens} {TokensLabel}";
 
+            string actionText = canPurchase 
+                ? $"${FormatCost(upgrade.CurrentCost)}" 
+                : $"Need ${FormatCost(upgrade.CurrentCost)}";
+
             SetText(_nameText, Title);
             SetText(_stateText, CombineLines(stateLabel, tokenLabel));
-            SetText(_actionText, $"${FormatCost(upgrade.CurrentCost)}");
+            SetText(_actionText, actionText);
             SetText(_iconText, BuildShortAcronym(Title));
             ApplyVisualState(visualState, canPurchase);
         }

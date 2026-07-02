@@ -40,7 +40,9 @@ namespace IdleAirport.GameCore
                 ? string.Empty
                 : isFull
                     ? string.Empty
-                    : $"${FormatCost(upgrade.TokenPackCost)}";
+                    : canPurchase
+                        ? $"${FormatCost(upgrade.TokenPackCost)}"
+                        : $"Need ${FormatCost(upgrade.TokenPackCost)}";
 
             SetText(_nameText, Title);
             SetText(_stateText, CombineLines(stateLabel, benefitLabel));

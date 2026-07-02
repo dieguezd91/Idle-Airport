@@ -266,5 +266,37 @@ namespace IdleAirport.GameCore
             if (graphic != null)
                 graphic.raycastTarget = enabled;
         }
+
+        private UIButtonFeedbackView _buttonFeedback;
+
+        public void PlaySuccess()
+        {
+            EnsureButtonFeedback();
+            if (_buttonFeedback != null) _buttonFeedback.PlaySuccess();
+        }
+
+        public void PlayFail()
+        {
+            EnsureButtonFeedback();
+            if (_buttonFeedback != null) _buttonFeedback.PlayFail();
+        }
+
+        public void PlayPulse()
+        {
+            EnsureButtonFeedback();
+            if (_buttonFeedback != null) _buttonFeedback.PlayPulse();
+        }
+
+        private void EnsureButtonFeedback()
+        {
+            if (_buttonFeedback == null && _actionButton != null)
+            {
+                _buttonFeedback = _actionButton.gameObject.GetComponent<UIButtonFeedbackView>();
+                if (_buttonFeedback == null)
+                {
+                    _buttonFeedback = _actionButton.gameObject.AddComponent<UIButtonFeedbackView>();
+                }
+            }
+        }
     }
 }

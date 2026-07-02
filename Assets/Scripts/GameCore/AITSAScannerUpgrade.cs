@@ -88,6 +88,7 @@ namespace IdleAirport.GameCore
         public int OwnedCount => _ownedCount;
         public int CurrentTokens => _currentTokens;
         public int MaxTokens => Mathf.Max(0, _ownedCount * TokensPerScanner);
+        public int DurabilityUpgradeCount => _durabilityUpgradeCount;
         public int TokensPerScanner => Mathf.Max(1, _tokensPerScanner);
         public int TokenPackSize => Mathf.Max(1, _tokenPackSize);
         public int TokensPerDurabilityUpgrade => Mathf.Max(1, _tokensPerDurabilityUpgrade);

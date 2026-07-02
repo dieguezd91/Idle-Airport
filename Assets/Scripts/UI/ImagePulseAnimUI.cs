@@ -13,6 +13,8 @@ namespace IdleAirport.UI
         [SerializeField] private bool playOnEnable = true;
         [SerializeField] private float cooldown = 0.2f;
  
+        [SerializeField] private bool changeColor = true;
+ 
         private Vector3 _baseScale;
         private Color _baseColor;
         private float _timer;
@@ -53,7 +55,10 @@ namespace IdleAirport.UI
             IsPlaying = false;
             _timer = 0f;
             targetImage.rectTransform.localScale = _baseScale;
-            targetImage.color = _baseColor;
+            if (changeColor)
+            {
+                targetImage.color = _baseColor;
+            }
         }
  
         private void Update()
@@ -66,7 +71,10 @@ namespace IdleAirport.UI
  
             var curveValue = scaleCurve.Evaluate(t);
             targetImage.rectTransform.localScale = _baseScale * Mathf.Lerp(1f, scaleMultiplier, curveValue);
-            targetImage.color = Color.Lerp(_baseColor, targetColor, curveValue);
+            if (changeColor)
+            {
+                targetImage.color = Color.Lerp(_baseColor, targetColor, curveValue);
+            }
  
             if (t >= 1f)
             {

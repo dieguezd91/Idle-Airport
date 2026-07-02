@@ -124,7 +124,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   duration: 0.3
   scaleMultiplier: 1.2
-  targetColor: {r: 0.8235294, g: 0.7607843, b: 0.31764707, a: 1}
+  targetColor: {r: 1, g: 1, b: 1, a: 1}
   playOnEnable: 0
   cooldown: 0.1
 --- !u!1 &6622882371883578250

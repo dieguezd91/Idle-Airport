@@ -104,6 +104,25 @@ namespace IdleAirport.GameCore
         public ManualScanFailureReason LastManualScanFailureReason => _lastManualScanFailureReason;
         public WaitingRoomUIController WaitingRoom => _waitingRoom;
 
+        private void Awake()
+        {
+            if (_aiScanner == null || _manualScanner == null)
+            {
+                var scanners = FindObjectsByType<ScannerStationUIController>(FindObjectsSortMode.None);
+                foreach (var scanner in scanners)
+                {
+                    if (scanner.IsAutoScanner && _aiScanner == null)
+                    {
+                        _aiScanner = scanner;
+                    }
+                    else if (!scanner.IsAutoScanner && _manualScanner == null)
+                    {
+                        _manualScanner = scanner;
+                    }
+                }
+            }
+        }
+
         private void Update()
         {
             LogManualScanStateIfNeeded();

@@ -29,12 +29,27 @@ namespace IdleAirport.GameCore
 
         public void Show(PassengerProcessor.PassengerProcessFeedbackData data)
         {
-            ShowReward(data.FeedbackWorldPosition, data.TotalReward);
+            ShowReward(data.FeedbackWorldPosition, data.TotalReward, data.ShopBonus);
         }
 
-        public void ShowReward(Vector3 worldPosition, double totalReward)
+        public void ShowReward(Vector3 worldPosition, double totalReward, double shopBonus = 0.0)
         {
-            ShowText(worldPosition, $"+${NumberFormatter.Format(totalReward, 0)}", _rewardColor);
+            if (shopBonus > 0.0)
+            {
+                string bonusStr = NumberFormatter.Format(shopBonus, 0);
+                string totalStr = NumberFormatter.Format(totalReward, 0);
+                string text = $"+${totalStr} <size=70%><color=#8ce6ff>(+${bonusStr} shops)</color></size>";
+                ShowText(worldPosition, text, _rewardColor);
+            }
+            else
+            {
+                ShowText(worldPosition, $"+${NumberFormatter.Format(totalReward, 0)}", _rewardColor);
+            }
+        }
+
+        public void ShowManualReward(Vector3 worldPosition, double totalReward)
+        {
+            ShowText(worldPosition, $"+${NumberFormatter.Format(totalReward, 0)}", _rewardColor, 0.55f, new Vector2(0f, 18f));
         }
 
         public void ShowShopBonus(Vector3 worldPosition, double shopBonus)
@@ -42,13 +57,47 @@ namespace IdleAirport.GameCore
             ShowText(worldPosition, $"${NumberFormatter.Format(shopBonus, 0)}", _shopBonusColor);
         }
 
-        public void ShowText(Vector3 worldPosition, string text, Color color)
+        public void ShowAtRectTransform(RectTransform target, string text, Color color, float duration = 0.55f, Vector2? offset = null)
+        {
+            if (target == null) return;
+
+            Canvas canvas = GetComponentInParent<Canvas>();
+            Vector2 screenPoint;
+            if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay && canvas.worldCamera != null)
+            {
+                screenPoint = RectTransformUtility.WorldToScreenPoint(canvas.worldCamera, target.position);
+            }
+            else
+            {
+                screenPoint = RectTransformUtility.WorldToScreenPoint(null, target.position);
+            }
+
+            RectTransform parentRect = GetComponent<RectTransform>();
+            if (parentRect != null && RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, screenPoint, canvas != null ? (canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera) : null, out Vector2 localPoint))
+            {
+                Vector2 appliedOffset = offset ?? _offset;
+                localPoint += appliedOffset;
+
+                if (_items == null || _items.Length == 0)
+                    CreatePool();
+
+                FloatingRewardItem item = GetNextItem();
+                Vector3 worldPos = parentRect.TransformPoint(localPoint);
+                item.Play(worldPos, text, Vector2.zero, duration, color);
+            }
+            else
+            {
+                ShowText(target.position, text, color, duration, offset);
+            }
+        }
+
+        public void ShowText(Vector3 worldPosition, string text, Color color, float? customDuration = null, Vector2? customOffset = null)
         {
             if (_items == null || _items.Length == 0)
                 CreatePool();
 
             FloatingRewardItem item = GetNextItem();
-            item.Play(worldPosition, text, _offset, _duration, color);
+            item.Play(worldPosition, text, customOffset ?? _offset, customDuration ?? _duration, color);
         }
 
         private void CreatePool()
@@ -110,6 +159,8 @@ namespace IdleAirport.GameCore
 
                 _gameObject.SetActive(true);
                 _rectTransform.position = worldPosition;
+                _rectTransform.SetAsLastSibling();
+                _rectTransform.localScale = Vector3.one;
                 _label.text = text;
                 _label.color = color;
                 _canvasGroup.alpha = 1f;

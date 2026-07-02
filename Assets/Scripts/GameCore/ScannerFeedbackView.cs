@@ -13,17 +13,30 @@ namespace IdleAirport.GameCore
 
         [Header("Success Feedback")]
         [SerializeField] private float _pulseDuration = 0.18f;
-        [SerializeField] private float _pulseScale = 1.03f;
+        [SerializeField] private float _pulseScale = 1.06f;
 
         [Header("Failure Feedback")]
         [SerializeField] private float _shakeDuration = 0.16f;
         [SerializeField] private float _shakeDistance = 4f;
+        [SerializeField] private Color _failColor = new(1f, 0.3f, 0.3f, 1f);
+
+        [Header("AI Progress Bar")]
+        [SerializeField] private Color _aiBarColor = new(0.2f, 0.7f, 1f, 1f);
+        [SerializeField] private Color _aiBarBgColor = new(0.1f, 0.1f, 0.1f, 0.6f);
+
+        [Header("AI Scanner State Colors")]
+        [SerializeField] private Color _aiOperationalColor = new(0.2f, 0.8f, 1f, 1f);
+        [SerializeField] private Color _aiNoTokensColor = new(0.5f, 0.5f, 0.5f, 0.8f);
 
         private Coroutine _manualRoutine;
         private Coroutine _autoRoutine;
         private Vector3 _manualBaseScale = Vector3.one;
         private Vector3 _autoBaseScale = Vector3.one;
         private Vector2 _manualBasePosition;
+        private UnityEngine.UI.Image _aiProgressBarFill;
+        private GameObject _aiProgressBarContainer;
+        private ScannerStationUIController _aiScannerInstance;
+        private AITSAScannerUpgrade _aiUpgrade;
 
         private void Awake()
         {
@@ -33,7 +46,112 @@ namespace IdleAirport.GameCore
             if (_floatingRewardText == null)
                 _floatingRewardText = FindFirstObjectByType<FloatingRewardTextUI>();
 
+            if (_aiUpgrade == null)
+                _aiUpgrade = FindFirstObjectByType<AITSAScannerUpgrade>();
+
             CacheBaseState();
+        }
+
+        private void Start()
+        {
+            var scanners = FindObjectsByType<ScannerStationUIController>(FindObjectsSortMode.None);
+            foreach (var s in scanners)
+            {
+                if (s.IsAutoScanner)
+                {
+                    _aiScannerInstance = s;
+                    break;
+                }
+            }
+
+            if (_aiScannerInstance != null)
+            {
+                _aiScannerInstance.OnAutoProcessingStarted += HandleAutoProcessingStarted;
+                _aiScannerInstance.OnAutoProcessingProgress += HandleAutoProcessingProgress;
+                _aiScannerInstance.OnAutoProcessingCompleted += HandleAutoProcessingCompleted;
+
+                CreateAIProgressBar();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_aiScannerInstance != null)
+            {
+                _aiScannerInstance.OnAutoProcessingStarted -= HandleAutoProcessingStarted;
+                _aiScannerInstance.OnAutoProcessingProgress -= HandleAutoProcessingProgress;
+                _aiScannerInstance.OnAutoProcessingCompleted -= HandleAutoProcessingCompleted;
+            }
+        }
+
+        private void Update()
+        {
+            UpdateAIScannerVisualState();
+        }
+
+        private void UpdateAIScannerVisualState()
+        {
+            if (_autoFeedbackTarget == null || _autoRoutine != null) return;
+            
+            var img = _autoFeedbackTarget.GetComponent<UnityEngine.UI.Image>();
+            if (img == null) return;
+
+            if (_aiUpgrade != null && _aiUpgrade.OwnedCount > 0)
+            {
+                img.color = _aiUpgrade.HasTokens ? _aiOperationalColor : _aiNoTokensColor;
+            }
+        }
+
+        private void CreateAIProgressBar()
+        {
+            if (_autoFeedbackTarget == null) return;
+
+            _aiProgressBarContainer = new GameObject("AIProgressBar", typeof(RectTransform));
+            _aiProgressBarContainer.transform.SetParent(_autoFeedbackTarget, false);
+
+            RectTransform containerRect = _aiProgressBarContainer.GetComponent<RectTransform>();
+            containerRect.sizeDelta = new Vector2(100f, 10f);
+            containerRect.anchoredPosition = new Vector2(0f, -60f);
+
+            var bgImage = _aiProgressBarContainer.AddComponent<UnityEngine.UI.Image>();
+            bgImage.color = _aiBarBgColor;
+
+            GameObject fillObj = new GameObject("Fill", typeof(RectTransform));
+            fillObj.transform.SetParent(_aiProgressBarContainer.transform, false);
+
+            RectTransform fillRect = fillObj.GetComponent<RectTransform>();
+            fillRect.anchorMin = new Vector2(0f, 0f);
+            fillRect.anchorMax = new Vector2(1f, 1f);
+            fillRect.offsetMin = Vector2.zero;
+            fillRect.offsetMax = Vector2.zero;
+
+            _aiProgressBarFill = fillObj.AddComponent<UnityEngine.UI.Image>();
+            _aiProgressBarFill.color = _aiBarColor;
+            _aiProgressBarFill.type = UnityEngine.UI.Image.Type.Filled;
+            _aiProgressBarFill.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
+            _aiProgressBarFill.fillAmount = 0f;
+
+            _aiProgressBarContainer.SetActive(false);
+        }
+
+        private void HandleAutoProcessingStarted(float duration)
+        {
+            if (_aiProgressBarContainer != null)
+                _aiProgressBarContainer.SetActive(true);
+            if (_aiProgressBarFill != null)
+                _aiProgressBarFill.fillAmount = 0f;
+        }
+
+        private void HandleAutoProcessingProgress(float progress)
+        {
+            if (_aiProgressBarFill != null)
+                _aiProgressBarFill.fillAmount = progress;
+        }
+
+        private void HandleAutoProcessingCompleted(PassengerUIVisual passenger)
+        {
+            if (_aiProgressBarContainer != null)
+                _aiProgressBarContainer.SetActive(false);
         }
 
         private void OnEnable()
@@ -59,15 +177,15 @@ namespace IdleAirport.GameCore
         private void HandleManualProcessed(PassengerProcessor.PassengerProcessFeedbackData data)
         {
             PlayManualSuccess();
-            if (_floatingRewardText != null)
-                _floatingRewardText.ShowReward(data.FeedbackWorldPosition, data.TotalReward);
+            if (_floatingRewardText != null && data.BaseReward > 0.0)
+                _floatingRewardText.ShowManualReward(data.FeedbackWorldPosition, data.BaseReward);
         }
 
         private void HandleAutoProcessed(PassengerProcessor.PassengerProcessFeedbackData data)
         {
             PlayAutoSuccess();
-            if (_floatingRewardText != null)
-                _floatingRewardText.ShowReward(data.FeedbackWorldPosition, data.TotalReward);
+            if (_floatingRewardText != null && data.BaseReward > 0.0)
+                _floatingRewardText.ShowManualReward(data.FeedbackWorldPosition, data.BaseReward);
         }
 
         private void HandleProcessFailed(PassengerProcessor.PassengerProcessFailedFeedbackData data)
@@ -77,6 +195,19 @@ namespace IdleAirport.GameCore
 
             if (_manualRoutine != null)
                 StopCoroutine(_manualRoutine);
+
+            if (_manualFeedbackTarget != null)
+            {
+                var pulse = _manualFeedbackTarget.GetComponent<IdleAirport.UI.ImagePulseAnimUI>();
+                if (pulse == null)
+                {
+                    pulse = _manualFeedbackTarget.GetComponentInChildren<IdleAirport.UI.ImagePulseAnimUI>();
+                }
+                if (pulse != null)
+                {
+                    pulse.Stop();
+                }
+            }
 
             _manualRoutine = StartCoroutine(PlayFailureRoutine());
         }

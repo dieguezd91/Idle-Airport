@@ -21,6 +21,11 @@ namespace IdleAirport.GameCore
         private PassengerUIVisual _activeAutoPassenger;
         private bool _isBusy;
 
+        public event Action<float> OnAutoProcessingStarted;
+        public event Action<float> OnAutoProcessingProgress;
+        public event Action<PassengerUIVisual> OnAutoProcessingCompleted;
+
+        public bool IsAutoScanner => _isAutoScanner;
         public bool IsBusy => _isAutoScanner && _isBusy;
         public int HeldCount => _heldPassengers.Count;
         public bool CanAcceptMore => _isAutoScanner || _heldPassengers.Count < _maxHeldCount;
@@ -96,7 +101,6 @@ namespace IdleAirport.GameCore
             _isBusy = false;
             return true;
         }
-
         private IEnumerator AutoProcessRoutine(PassengerUIVisual passenger, Action<PassengerUIVisual> onCompleted)
         {
             _isBusy = true;
@@ -105,9 +109,20 @@ namespace IdleAirport.GameCore
             passenger.transform.SetParent(transform, true);
             passenger.SetPositionImmediate(_scannerPoint.anchoredPosition);
 
-            yield return new WaitForSeconds(_processingDuration);
+            OnAutoProcessingStarted?.Invoke(_processingDuration);
+
+            float elapsed = 0f;
+            while (elapsed < _processingDuration)
+            {
+                elapsed += Time.deltaTime;
+                float progress = Mathf.Clamp01(elapsed / _processingDuration);
+                OnAutoProcessingProgress?.Invoke(progress);
+                yield return null;
+            }
 
             onCompleted?.Invoke(passenger);
+            OnAutoProcessingCompleted?.Invoke(passenger);
+
             if (_activeAutoPassenger == passenger)
                 _activeAutoPassenger = null;
             _isBusy = false;
