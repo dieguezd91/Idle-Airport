@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_Windows
-  m_Shader: {fileID: 4800000, guid: 07427bbb1b517da41a416b35a6fe42ac, type: 3}
+  m_Name: M_EntranceGradient
+  m_Shader: {fileID: 4800000, guid: 786640df9a4453f4297d021829d01b51, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -27,15 +27,11 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _TextureSample1:
-        m_Texture: {fileID: 2800000, guid: 358ea7ed691baf141b6415a78009c0d8, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _ColorMask: 15
-    - _Float0: 0.021447398
-    - _Float1: 0.01809291
+    - _Float0: 8
+    - _PixelDensity: 16
     - _Stencil: 0
     - _StencilComp: 8
     - _StencilOp: 0
@@ -44,8 +40,7 @@ Material:
     - _UseUIAlphaClip: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _Color1: {r: 0.5345911, g: 0.5345911, b: 0.5345911, a: 0}
-    - _Color2: {r: 0.16352195, g: 0.16352195, b: 0.16352195, a: 0}
-    - _Color3: {r: 0.37421376, g: 0.8097672, b: 1, a: 0}
+    - _Color1: {r: 0, g: 0, b: 0, a: 1}
+    - _Color2: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
