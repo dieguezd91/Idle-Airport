@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,6 +11,19 @@ namespace IdleAirport.GameCore
         [SerializeField] private TextMeshProUGUI _levelText;
         [SerializeField] private TextMeshProUGUI _bonusText;
         [SerializeField] private Image _icon;
+        [SerializeField] private float _feedbackDuration = 0.22f;
+        [SerializeField] private float _feedbackScale = 1.08f;
+        [SerializeField] private float _incomeFeedbackScale = 1.04f;
+
+        private Coroutine _feedbackRoutine;
+        private Vector3 _baseScale = Vector3.one;
+
+        public Vector3 FeedbackWorldPosition => transform.position;
+
+        private void Awake()
+        {
+            _baseScale = transform.localScale;
+        }
 
         public void SetData(string storeName, int ownedCount, double incomePerPassenger)
         {
@@ -24,6 +38,43 @@ namespace IdleAirport.GameCore
                 double totalIncome = incomePerPassenger * ownedCount;
                 _bonusText.text = $"+${NumberFormatter.Format(totalIncome, 2)}/pax";
             }
+        }
+
+        public void PlayPurchasedFeedback()
+        {
+            PlayScaleFeedback(_feedbackScale);
+        }
+
+        public void PlayIncomeFeedback(double amount)
+        {
+            PlayScaleFeedback(_incomeFeedbackScale);
+        }
+
+        private void PlayScaleFeedback(float scale)
+        {
+            if (!isActiveAndEnabled)
+                return;
+
+            if (_feedbackRoutine != null)
+                StopCoroutine(_feedbackRoutine);
+
+            _feedbackRoutine = StartCoroutine(PlayScaleFeedbackRoutine(scale));
+        }
+
+        private IEnumerator PlayScaleFeedbackRoutine(float scale)
+        {
+            float elapsed = 0f;
+            while (elapsed < _feedbackDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / _feedbackDuration);
+                float pulse = Mathf.Sin(t * Mathf.PI);
+                transform.localScale = _baseScale * Mathf.Lerp(1f, scale, pulse);
+                yield return null;
+            }
+
+            transform.localScale = _baseScale;
+            _feedbackRoutine = null;
         }
     }
 }

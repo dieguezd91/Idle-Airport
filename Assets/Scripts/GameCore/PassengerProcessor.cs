@@ -1,9 +1,16 @@
+using System;
 using UnityEngine;
 
 namespace IdleAirport.GameCore
 {
     public sealed class PassengerProcessor : MonoBehaviour
     {
+        public enum PassengerProcessingType
+        {
+            Manual,
+            Auto
+        }
+
         public enum ManualScanFailureReason
         {
             None,
@@ -15,6 +22,50 @@ namespace IdleAirport.GameCore
             DequeueFailed,
             WaitingRoomReceiveFailed
         }
+
+        public readonly struct PassengerProcessFeedbackData
+        {
+            public PassengerProcessFeedbackData(
+                PassengerProcessingType processingType,
+                double totalReward,
+                double baseReward,
+                double shopBonus,
+                Vector3 feedbackWorldPosition)
+            {
+                ProcessingType = processingType;
+                TotalReward = totalReward;
+                BaseReward = baseReward;
+                ShopBonus = shopBonus;
+                FeedbackWorldPosition = feedbackWorldPosition;
+            }
+
+            public PassengerProcessingType ProcessingType { get; }
+            public double TotalReward { get; }
+            public double BaseReward { get; }
+            public double ShopBonus { get; }
+            public Vector3 FeedbackWorldPosition { get; }
+        }
+
+        public readonly struct PassengerProcessFailedFeedbackData
+        {
+            public PassengerProcessFailedFeedbackData(
+                PassengerProcessingType processingType,
+                ManualScanFailureReason manualFailureReason,
+                Vector3 feedbackWorldPosition)
+            {
+                ProcessingType = processingType;
+                ManualFailureReason = manualFailureReason;
+                FeedbackWorldPosition = feedbackWorldPosition;
+            }
+
+            public PassengerProcessingType ProcessingType { get; }
+            public ManualScanFailureReason ManualFailureReason { get; }
+            public Vector3 FeedbackWorldPosition { get; }
+        }
+
+        public event Action<PassengerProcessFeedbackData> OnPassengerManuallyProcessed;
+        public event Action<PassengerProcessFeedbackData> OnPassengerAutoProcessed;
+        public event Action<PassengerProcessFailedFeedbackData> OnPassengerProcessFailed;
 
         [Header("References")]
         [SerializeField] private EconomyController _economyController;
@@ -121,32 +172,49 @@ namespace IdleAirport.GameCore
 
             if (_waitingRoom == null)
             {
-                _lastManualScanFailureReason = ManualScanFailureReason.MissingWaitingRoom;
+                SetManualScanFailure(ManualScanFailureReason.MissingWaitingRoom);
                 return false;
             }
 
             if (!_waitingRoom.HasReservableCapacity)
             {
-                _lastManualScanFailureReason = ManualScanFailureReason.NoReservableCapacity;
+                SetManualScanFailure(ManualScanFailureReason.NoReservableCapacity);
                 return false;
             }
 
             if (_manualScanner == null || !_manualScanner.HasManualPassengerReady)
             {
-                _lastManualScanFailureReason = ManualScanFailureReason.NoPassengers;
+                SetManualScanFailure(ManualScanFailureReason.NoPassengers);
                 return false;
             }
 
             PassengerUIVisual passenger;
             if (!_manualScanner.TryReleaseOneHeldPassenger(out passenger))
             {
-                _lastManualScanFailureReason = ManualScanFailureReason.DequeueFailed;
+                SetManualScanFailure(ManualScanFailureReason.DequeueFailed);
                 return false;
             }
 
-            bool processed = CompleteProcessedPassenger(passenger, consumeReservation: true, instantWaitingRoomPlacement: true);
+            Vector3 feedbackPosition = GetFeedbackWorldPosition(_manualScanner, passenger);
+            bool processed = CompleteProcessedPassenger(
+                passenger,
+                consumeReservation: true,
+                out PassengerRewardBreakdown reward,
+                instantWaitingRoomPlacement: true);
+
             if (!processed)
-                _lastManualScanFailureReason = ManualScanFailureReason.WaitingRoomReceiveFailed;
+            {
+                SetManualScanFailure(ManualScanFailureReason.WaitingRoomReceiveFailed);
+            }
+            else
+            {
+                OnPassengerManuallyProcessed?.Invoke(new PassengerProcessFeedbackData(
+                    PassengerProcessingType.Manual,
+                    reward.TotalReward,
+                    reward.BaseReward,
+                    reward.ShopBonus,
+                    feedbackPosition));
+            }
 
             TryRefillManualScanner();
             return processed;
@@ -177,9 +245,21 @@ namespace IdleAirport.GameCore
 
         private void OnAutoScannerCompleted(PassengerUIVisual passenger)
         {
-            bool processed = CompleteProcessedPassenger(passenger, consumeReservation: true, instantWaitingRoomPlacement: true);
+            Vector3 feedbackPosition = GetFeedbackWorldPosition(_aiScanner, passenger);
+            bool processed = CompleteProcessedPassenger(
+                passenger,
+                consumeReservation: true,
+                out PassengerRewardBreakdown reward,
+                instantWaitingRoomPlacement: true);
             if (!processed)
                 return;
+
+            OnPassengerAutoProcessed?.Invoke(new PassengerProcessFeedbackData(
+                PassengerProcessingType.Auto,
+                reward.TotalReward,
+                reward.BaseReward,
+                reward.ShopBonus,
+                feedbackPosition));
 
             if (_aiTSAScannerUpgrade != null && !_aiTSAScannerUpgrade.TryConsumeTokenAfterAutoScan())
             {
@@ -187,8 +267,14 @@ namespace IdleAirport.GameCore
             }
         }
 
-        private bool CompleteProcessedPassenger(PassengerUIVisual passenger, bool consumeReservation, bool instantWaitingRoomPlacement = false)
+        private bool CompleteProcessedPassenger(
+            PassengerUIVisual passenger,
+            bool consumeReservation,
+            out PassengerRewardBreakdown reward,
+            bool instantWaitingRoomPlacement = false)
         {
+            reward = default;
+
             if (passenger == null)
             {
                 if (consumeReservation && _waitingRoom != null)
@@ -220,28 +306,23 @@ namespace IdleAirport.GameCore
                 return false;
             }
 
-            RewardProcessedPassenger();
+            reward = RewardProcessedPassenger();
             return true;
         }
 
-        private void RewardProcessedPassenger()
+        private PassengerRewardBreakdown RewardProcessedPassenger()
         {
-            if (_economyController == null) return;
+            PassengerRewardBreakdown reward = GetPassengerRewardBreakdown();
+            if (_economyController == null) return reward;
 
-            double totalReward = GetTotalPassengerReward();
-            _economyController.RewardProcessedPassenger(totalReward);
+            _economyController.RewardProcessedPassenger(reward.TotalReward);
+            return reward;
         }
 
         public double GetTotalPassengerReward()
         {
-            double baseIncome = _economyController != null
-                ? _economyController.GetBasePassengerIncome()
-                : 0.0;
-            double shopsBonus = _storesManager != null
-                ? _storesManager.GetPassengerIncomeBonus()
-                : 0.0;
-
-            return baseIncome + shopsBonus;
+            PassengerRewardBreakdown reward = GetPassengerRewardBreakdown();
+            return reward.TotalReward;
         }
 
         public double GetShopsPassengerIncomeBonus()
@@ -258,6 +339,18 @@ namespace IdleAirport.GameCore
         public string GetLastManualScanFailureReason()
         {
             return _lastManualScanFailureReason.ToString();
+        }
+
+        private PassengerRewardBreakdown GetPassengerRewardBreakdown()
+        {
+            double baseIncome = _economyController != null
+                ? _economyController.GetBasePassengerIncome()
+                : 0.0;
+            double shopsBonus = _storesManager != null
+                ? _storesManager.GetPassengerIncomeBonus()
+                : 0.0;
+
+            return new PassengerRewardBreakdown(baseIncome, shopsBonus);
         }
 
         private bool EvaluateCanManualScan(out string blockReason)
@@ -346,6 +439,36 @@ namespace IdleAirport.GameCore
         {
             for (int i = 0; i < count; i++)
                 _waitingRoom.ReleaseReservedSlot();
+        }
+
+        private void SetManualScanFailure(ManualScanFailureReason reason)
+        {
+            _lastManualScanFailureReason = reason;
+            OnPassengerProcessFailed?.Invoke(new PassengerProcessFailedFeedbackData(
+                PassengerProcessingType.Manual,
+                reason,
+                GetFeedbackWorldPosition(_manualScanner, null)));
+        }
+
+        private static Vector3 GetFeedbackWorldPosition(ScannerStationUIController scanner, PassengerUIVisual passenger)
+        {
+            if (passenger != null)
+                return passenger.transform.position;
+
+            return scanner != null ? scanner.FeedbackWorldPosition : Vector3.zero;
+        }
+
+        private readonly struct PassengerRewardBreakdown
+        {
+            public PassengerRewardBreakdown(double baseReward, double shopBonus)
+            {
+                BaseReward = baseReward;
+                ShopBonus = shopBonus;
+            }
+
+            public double BaseReward { get; }
+            public double ShopBonus { get; }
+            public double TotalReward => BaseReward + ShopBonus;
         }
     }
 }

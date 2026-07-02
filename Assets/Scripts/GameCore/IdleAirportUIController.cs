@@ -431,7 +431,7 @@ namespace IdleAirport.GameCore
             if (count <= 0)
                 return;
 
-            ShowHUDFeedback("Flight departed");
+            ShowHUDFeedback($"Flight departed: {count} pax");
         }
 
         private void RefreshWaitingRoomStatus()
@@ -645,11 +645,10 @@ namespace IdleAirport.GameCore
 
         private string BuildGateStatusText(int displayedCurrent, int capacity)
         {
-            string status = $"Gate: {displayedCurrent}/{capacity}";
             if (capacity > 0 && displayedCurrent >= capacity)
-                status += " | Boarding";
+                return "Boarding";
 
-            return status;
+            return $"Gate: {displayedCurrent}/{capacity}";
         }
     }
 }

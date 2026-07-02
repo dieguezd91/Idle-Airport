@@ -27,6 +27,7 @@ namespace IdleAirport.GameCore
         public float ProcessingDuration => _processingDuration;
         public bool IsOperational => isActiveAndEnabled && gameObject.activeInHierarchy;
         public bool HasManualPassengerReady => !_isAutoScanner && _heldPassengers.Count > 0;
+        public Vector3 FeedbackWorldPosition => _scannerPoint != null ? _scannerPoint.position : transform.position;
 
         public bool TryHoldPassenger(PassengerUIVisual passenger)
         {
