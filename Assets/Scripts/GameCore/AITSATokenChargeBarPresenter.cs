@@ -26,6 +26,7 @@ namespace IdleAirport.GameCore
         private RectTransform _feedbackTarget;
         private Vector3 _baseScale = Vector3.one;
         private bool _loggedMissingUpgrade;
+        private AIStateData? _previousState;
 
         private void Awake()
         {
@@ -46,23 +47,15 @@ namespace IdleAirport.GameCore
                 return;
             }
 
-            _aiScannerUpgrade.TokensChanged += HandleTokensChanged;
-            _aiScannerUpgrade.TokensConsumed += HandleTokensConsumed;
-            _aiScannerUpgrade.TokensRefilled += HandleTokensRefilled;
-            _aiScannerUpgrade.TokensEmpty += HandleTokensEmpty;
-
+            _previousState = _aiScannerUpgrade.GetState();
             Refresh(animate: false);
+            _aiScannerUpgrade.OnAIStateChanged += HandleAIStateChanged;
         }
 
         private void OnDisable()
         {
             if (_aiScannerUpgrade != null)
-            {
-                _aiScannerUpgrade.TokensChanged -= HandleTokensChanged;
-                _aiScannerUpgrade.TokensConsumed -= HandleTokensConsumed;
-                _aiScannerUpgrade.TokensRefilled -= HandleTokensRefilled;
-                _aiScannerUpgrade.TokensEmpty -= HandleTokensEmpty;
-            }
+                _aiScannerUpgrade.OnAIStateChanged -= HandleAIStateChanged;
 
             StopActiveRoutines();
         }
@@ -81,29 +74,37 @@ namespace IdleAirport.GameCore
                 return;
             }
 
-            SetAmountText(_aiScannerUpgrade.CurrentTokens, _aiScannerUpgrade.MaxTokens);
-            SetFill(_aiScannerUpgrade.TokenFill01, animate && _animateFill);
+            AIStateData state = _aiScannerUpgrade.GetState();
+            ApplyState(state, animate && _animateFill);
         }
 
-        private void HandleTokensChanged(int currentTokens, int maxTokens)
+        private void HandleAIStateChanged(AIStateData state)
         {
-            SetAmountText(currentTokens, maxTokens);
-            SetFill(CalculateFill(currentTokens, maxTokens), _animateFill);
+            bool animate = _animateFill;
+
+            ApplyState(state, animate);
+
+            if (_previousState.HasValue)
+            {
+                int previousTokens = _previousState.Value.CurrentTokens;
+                int currentTokens = state.CurrentTokens;
+
+                if (currentTokens < previousTokens)
+                    PlayPulse();
+                else if (currentTokens > previousTokens)
+                    PlayPulse();
+
+                if (previousTokens > 0 && currentTokens == 0)
+                    PlayEmptyWarning();
+            }
+
+            _previousState = state;
         }
 
-        private void HandleTokensConsumed(int previousTokens, int currentTokens)
+        private void ApplyState(AIStateData state, bool animate)
         {
-            PlayPulse();
-        }
-
-        private void HandleTokensRefilled(int previousTokens, int currentTokens)
-        {
-            PlayPulse();
-        }
-
-        private void HandleTokensEmpty()
-        {
-            PlayEmptyWarning();
+            SetAmountText(state.CurrentTokens, state.MaxTokens);
+            SetFill(state.TokenFill01, animate);
         }
 
         private void SetFill(float fill)
@@ -286,11 +287,6 @@ namespace IdleAirport.GameCore
 
             _loggedMissingUpgrade = true;
             Debug.LogWarning("AITSATokenChargeBarPresenter: AITSAScannerUpgrade reference is missing.", this);
-        }
-
-        private static float CalculateFill(int currentTokens, int maxTokens)
-        {
-            return maxTokens <= 0 ? 0f : Mathf.Clamp01(currentTokens / (float)maxTokens);
         }
     }
 }

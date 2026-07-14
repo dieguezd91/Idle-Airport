@@ -48,6 +48,7 @@ namespace IdleAirport.GameCore
         private string _lastFeedbackMessage;
         private float _lastFeedbackTime;
         private bool _suppressAIStateTransitionFeedback;
+        private AIStateData? _previousAIState;
         private AirportPrestigeHudPresenter _prestigeHudPresenter;
 
         private TextMeshProUGUI _nextObjectiveText;
@@ -82,25 +83,23 @@ namespace IdleAirport.GameCore
 
         private void OnEnable()
         {
+            CacheInitialAIState();
             BindButtonListeners();
-        }
-
-        private void Start()
-        {
             SubscribeToEvents();
-            RegisterStoreButtonHandlers();
-            RegisterAIUpgradeButtonHandlers();
-            CreateNextObjectiveText();
             UpdateAllTexts();
             UpdateUpgradeUI();
             UpdateStoreUI();
             UpdateNextObjective();
         }
 
+        private void OnDisable()
+        {
+            UnsubscribeFromEvents();
+        }
+
         private void OnDestroy()
         {
             UnbindButtonListeners();
-            UnsubscribeFromEvents();
         }
 
         private void Update()
@@ -173,7 +172,6 @@ namespace IdleAirport.GameCore
                     ShowHUDFeedback("Not enough money");
                 }
             }
-            UpdateUpgradeUI();
             UpdateNextObjective();
         }
 
@@ -193,6 +191,12 @@ namespace IdleAirport.GameCore
             else
             {
                 if (_aiMaintenanceTokensCardView != null) _aiMaintenanceTokensCardView.PlayFail();
+                if (result == AITokenPackPurchaseResult.InsufficientFunds
+                    || result == AITokenPackPurchaseResult.TokensFull)
+                {
+                    if (_aiUpgradeFeedbackView != null) _aiUpgradeFeedbackView.PlayFail("Tokens");
+                }
+
                 if (result == AITokenPackPurchaseResult.InsufficientFunds)
                 {
                     PlayMoneyFailFeedback();
@@ -203,7 +207,6 @@ namespace IdleAirport.GameCore
                     ShowHUDFeedback("Tokens full");
                 }
             }
-            UpdateUpgradeUI();
             UpdateNextObjective();
         }
 
@@ -225,11 +228,11 @@ namespace IdleAirport.GameCore
                 if (_aiDurabilityUpgradeCardView != null) _aiDurabilityUpgradeCardView.PlayFail();
                 if (result == AIDurabilityPurchaseResult.InsufficientFunds)
                 {
+                    if (_aiUpgradeFeedbackView != null) _aiUpgradeFeedbackView.PlayFail("Durability");
                     PlayMoneyFailFeedback();
                     ShowHUDFeedback("Not enough money");
                 }
             }
-            UpdateUpgradeUI();
             UpdateNextObjective();
         }
 
@@ -297,13 +300,7 @@ namespace IdleAirport.GameCore
 
             if (_aiTSAScannerUpgrade != null)
             {
-                _aiTSAScannerUpgrade.OnAITokensChanged += OnAITokensChanged;
-                _aiTSAScannerUpgrade.OnAIEffectiveScannerCountChanged += OnAIEffectiveScannerCountChanged;
-                _aiTSAScannerUpgrade.OnAITokensDepleted += OnAITokensDepleted;
-                _aiTSAScannerUpgrade.OnAITokenPackPurchased += OnAITokenPackPurchased;
-                _aiTSAScannerUpgrade.OnAIDurabilityUpgraded += OnAIDurabilityUpgraded;
-                _aiTSAScannerUpgrade.OnAITokenPurchaseFailed += OnAITokenPurchaseFailed;
-                _aiTSAScannerUpgrade.OnAIDurabilityPurchaseFailed += OnAIDurabilityPurchaseFailed;
+                _aiTSAScannerUpgrade.OnAIStateChanged += HandleAIStateChanged;
             }
 
             if (_passengerProcessor != null)
@@ -334,13 +331,7 @@ namespace IdleAirport.GameCore
 
             if (_aiTSAScannerUpgrade != null)
             {
-                _aiTSAScannerUpgrade.OnAITokensChanged -= OnAITokensChanged;
-                _aiTSAScannerUpgrade.OnAIEffectiveScannerCountChanged -= OnAIEffectiveScannerCountChanged;
-                _aiTSAScannerUpgrade.OnAITokensDepleted -= OnAITokensDepleted;
-                _aiTSAScannerUpgrade.OnAITokenPackPurchased -= OnAITokenPackPurchased;
-                _aiTSAScannerUpgrade.OnAIDurabilityUpgraded -= OnAIDurabilityUpgraded;
-                _aiTSAScannerUpgrade.OnAITokenPurchaseFailed -= OnAITokenPurchaseFailed;
-                _aiTSAScannerUpgrade.OnAIDurabilityPurchaseFailed -= OnAIDurabilityPurchaseFailed;
+                _aiTSAScannerUpgrade.OnAIStateChanged -= HandleAIStateChanged;
             }
 
             if (_passengerProcessor != null)
@@ -375,38 +366,32 @@ namespace IdleAirport.GameCore
             UpdateNextObjective();
         }
 
-        private void OnAITokensChanged(int previous, int current)
-        {
-            UpdateUpgradeUI();
-        }
-
-        private void OnAIEffectiveScannerCountChanged(int previous, int current)
+        private void HandleAIStateChanged(AIStateData state)
         {
             UpdateUpgradeUI();
 
             if (_suppressAIStateTransitionFeedback)
-                return;
-
-            if (previous > 0 && current == 0)
             {
-                ShowHUDFeedback("AI Scanner out of tokens");
+                _previousAIState = state;
                 return;
             }
+
+            if (_previousAIState.HasValue)
+            {
+                int prev = _previousAIState.Value.EffectiveScannerCount;
+                int curr = state.EffectiveScannerCount;
+
+                if (prev > 0 && curr == 0)
+                    ShowHUDFeedback("AI Scanner out of tokens");
+            }
+
+            _previousAIState = state;
         }
 
-        private void OnAITokensDepleted()
+        private void CacheInitialAIState()
         {
-            UpdateUpgradeUI();
-        }
-
-        private void OnAITokenPackPurchased()
-        {
-            UpdateUpgradeUI();
-        }
-
-        private void OnAIDurabilityUpgraded()
-        {
-            UpdateUpgradeUI();
+            if (_aiTSAScannerUpgrade != null)
+                _previousAIState = _aiTSAScannerUpgrade.GetState();
         }
 
         private void OnPassengersChanged(int passengers)
@@ -709,6 +694,7 @@ namespace IdleAirport.GameCore
                 _scannerButton.onClick.AddListener(OnScannerClicked);
             }
 
+            RegisterStoreButtonHandlers();
             RegisterAIUpgradeButtonHandlers();
         }
 
@@ -740,29 +726,6 @@ namespace IdleAirport.GameCore
 
         private void CreateNextObjectiveText() {}
         private void UpdateNextObjective() {}
-
-        private void OnAITokenPurchaseFailed(AITokenPackPurchaseFailureReason reason)
-        {
-            if (reason == AITokenPackPurchaseFailureReason.InsufficientFunds)
-            {
-                PlayMoneyFailFeedback();
-                if (_aiUpgradeFeedbackView != null) _aiUpgradeFeedbackView.PlayFail("Tokens");
-            }
-            else if (reason == AITokenPackPurchaseFailureReason.TokensFull)
-            {
-                if (_aiUpgradeFeedbackView != null) _aiUpgradeFeedbackView.PlayFail("Tokens");
-                ShowHUDFeedback("Tokens full");
-            }
-        }
-
-        private void OnAIDurabilityPurchaseFailed(AIDurabilityPurchaseFailureReason reason)
-        {
-            if (reason == AIDurabilityPurchaseFailureReason.InsufficientFunds)
-            {
-                PlayMoneyFailFeedback();
-                if (_aiUpgradeFeedbackView != null) _aiUpgradeFeedbackView.PlayFail("Durability");
-            }
-        }
 
         private void PlayMoneyPulse()
         {
