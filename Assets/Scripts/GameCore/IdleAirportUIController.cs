@@ -87,6 +87,7 @@ namespace IdleAirport.GameCore
             BindButtonListeners();
             SubscribeToEvents();
             UpdateAllTexts();
+            RefreshPPSText();
             UpdateUpgradeUI();
             UpdateStoreUI();
             UpdateNextObjective();
@@ -104,17 +105,11 @@ namespace IdleAirport.GameCore
 
         private void Update()
         {
-            if (_passengerProcessor != null && _ppsText != null)
-            {
-                _ppsText.text = $"AI TSA: {NumberFormatter.Format(_passengerProcessor.CurrentPassengersPerSecond, 2)} pax/s";
-            }
-
             if (_scannerButton != null && _passengerProcessor != null)
             {
                 _scannerButton.interactable = _passengerProcessor.IsGameplayActive;
             }
 
-            UpdatePassengerIncomeTexts();
             UpdateNextFlightCountdownText();
         }
 
@@ -238,12 +233,17 @@ namespace IdleAirport.GameCore
 
         private void OnStorePurchased(int index, Store store)
         {
-            UpdateStoreUI();
             if (_storeViews != null && index >= 0 && index < _storeViews.Length && _storeViews[index] != null)
             {
                 _storeViews[index].PlaySuccess();
             }
             UpdateNextObjective();
+        }
+
+        private void HandleBusinessesChanged()
+        {
+            UpdateStoreUI();
+            UpdatePassengerIncomeTexts();
         }
 
         private void RegisterStoreButtonHandlers()
@@ -294,7 +294,7 @@ namespace IdleAirport.GameCore
             if (_storesManager != null)
             {
                 _storesManager.OnStorePurchased += OnStorePurchased;
-                _storesManager.OnBusinessesChanged += UpdateStoreUI;
+                _storesManager.OnBusinessesChanged += HandleBusinessesChanged;
                 _storesManager.OnStorePurchaseFailed += OnStorePurchaseFailed;
             }
 
@@ -325,7 +325,7 @@ namespace IdleAirport.GameCore
             if (_storesManager != null)
             {
                 _storesManager.OnStorePurchased -= OnStorePurchased;
-                _storesManager.OnBusinessesChanged -= UpdateStoreUI;
+                _storesManager.OnBusinessesChanged -= HandleBusinessesChanged;
                 _storesManager.OnStorePurchaseFailed -= OnStorePurchaseFailed;
             }
 
@@ -369,6 +369,7 @@ namespace IdleAirport.GameCore
         private void HandleAIStateChanged(AIStateData state)
         {
             UpdateUpgradeUI();
+            RefreshPPSText();
 
             if (_suppressAIStateTransitionFeedback)
             {
@@ -433,6 +434,15 @@ namespace IdleAirport.GameCore
                 _totalPassengerIncomeText.text = $"Total: ${NumberFormatter.Format(totalIncome, 2)}/pax";
         }
 
+        private void RefreshPPSText()
+        {
+            if (_ppsText == null)
+                return;
+
+            float pps = _passengerProcessor != null ? _passengerProcessor.CurrentPassengersPerSecond : 0f;
+            _ppsText.text = $"AI TSA: {NumberFormatter.Format(pps, 2)} pax/s";
+        }
+
         private void UpdateUpgradeUI()
         {
             if (_aiTSAScannerCardView != null)
@@ -485,8 +495,6 @@ namespace IdleAirport.GameCore
                         _storeViews[i].gameObject.SetActive(false);
                 }
             }
-
-            UpdatePassengerIncomeTexts();
         }
 
         private void OnStorePurchaseFailed(StorePurchaseFailureReason reason)
