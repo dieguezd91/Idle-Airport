@@ -27,11 +27,6 @@ namespace IdleAirport.GameCore
             CreatePool();
         }
 
-        public void Show(PassengerProcessor.PassengerProcessFeedbackData data)
-        {
-            ShowReward(data.FeedbackWorldPosition, data.TotalReward, data.ShopBonus);
-        }
-
         public void ShowReward(Vector3 worldPosition, double totalReward, double shopBonus = 0.0)
         {
             if (shopBonus > 0.0)

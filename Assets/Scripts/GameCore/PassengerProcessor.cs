@@ -25,27 +25,24 @@ namespace IdleAirport.GameCore
             WaitingRoomReceiveFailed
         }
 
-        public readonly struct PassengerProcessFeedbackData
+        public readonly struct PassengerProcessedData
         {
-            public PassengerProcessFeedbackData(
+            public PassengerProcessedData(
                 PassengerProcessingType processingType,
                 double totalReward,
                 double baseReward,
-                double shopBonus,
-                Vector3 feedbackWorldPosition)
+                double shopBonus)
             {
                 ProcessingType = processingType;
                 TotalReward = totalReward;
                 BaseReward = baseReward;
                 ShopBonus = shopBonus;
-                FeedbackWorldPosition = feedbackWorldPosition;
             }
 
             public PassengerProcessingType ProcessingType { get; }
             public double TotalReward { get; }
             public double BaseReward { get; }
             public double ShopBonus { get; }
-            public Vector3 FeedbackWorldPosition { get; }
         }
 
         public readonly struct PassengerProcessFailedFeedbackData
@@ -78,8 +75,7 @@ namespace IdleAirport.GameCore
             public bool CanAcceptPassenger => IsUnlocked && Scanner != null && Scanner.CanAcceptPassenger;
         }
 
-        public event Action<PassengerProcessFeedbackData> OnPassengerManuallyProcessed;
-        public event Action<PassengerProcessFeedbackData> OnPassengerAutoProcessed;
+        public event Action<PassengerProcessedData> OnPassengerProcessed;
         public event Action<PassengerProcessFailedFeedbackData> OnPassengerProcessFailed;
 
         [Header("References")]
@@ -263,7 +259,6 @@ namespace IdleAirport.GameCore
                     continue;
                 }
 
-                Vector3 feedbackPosition = GetFeedbackWorldPosition(scanner, passenger);
                 bool processed = CompleteProcessedPassenger(
                     passenger,
                     consumeReservation: true,
@@ -277,12 +272,11 @@ namespace IdleAirport.GameCore
                 }
 
                 processedAny = true;
-                OnPassengerManuallyProcessed?.Invoke(new PassengerProcessFeedbackData(
+                OnPassengerProcessed?.Invoke(new PassengerProcessedData(
                     PassengerProcessingType.Manual,
                     reward.TotalReward,
                     reward.BaseReward,
-                    reward.ShopBonus,
-                    feedbackPosition));
+                    reward.ShopBonus));
             }
 
             FillAvailableManualScanners();
@@ -355,7 +349,6 @@ namespace IdleAirport.GameCore
 
         private void OnAutoScannerCompleted(PassengerUIVisual passenger)
         {
-            Vector3 feedbackPosition = GetFeedbackWorldPosition(_aiScanner, passenger);
             bool processed = CompleteProcessedPassenger(
                 passenger,
                 consumeReservation: true,
@@ -364,12 +357,11 @@ namespace IdleAirport.GameCore
             if (!processed)
                 return;
 
-            OnPassengerAutoProcessed?.Invoke(new PassengerProcessFeedbackData(
+            OnPassengerProcessed?.Invoke(new PassengerProcessedData(
                 PassengerProcessingType.Auto,
                 reward.TotalReward,
                 reward.BaseReward,
-                reward.ShopBonus,
-                feedbackPosition));
+                reward.ShopBonus));
 
             if (_aiTSAScannerUpgrade != null && !_aiTSAScannerUpgrade.TryConsumeTokenAfterAutoScan())
             {

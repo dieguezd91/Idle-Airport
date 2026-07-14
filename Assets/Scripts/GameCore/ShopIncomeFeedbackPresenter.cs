@@ -31,9 +31,8 @@ namespace IdleAirport.GameCore
         {
             if (_passengerProcessor != null)
             {
-                _passengerProcessor.OnPassengerManuallyProcessed += HandlePassengerProcessed;
-                _passengerProcessor.OnPassengerAutoProcessed += HandlePassengerProcessed;
-                if (_debugShopIncomeFeedback) Debug.Log("[ShopFeedback] Subscribed to PassengerProcessor manual and auto events.");
+                _passengerProcessor.OnPassengerProcessed += HandlePassengerProcessed;
+                if (_debugShopIncomeFeedback) Debug.Log("[ShopFeedback] Subscribed to PassengerProcessor processed event.");
             }
             else
             {
@@ -45,13 +44,12 @@ namespace IdleAirport.GameCore
         {
             if (_passengerProcessor != null)
             {
-                _passengerProcessor.OnPassengerManuallyProcessed -= HandlePassengerProcessed;
-                _passengerProcessor.OnPassengerAutoProcessed -= HandlePassengerProcessed;
-                if (_debugShopIncomeFeedback) Debug.Log("[ShopFeedback] Unsubscribed from PassengerProcessor manual and auto events.");
+                _passengerProcessor.OnPassengerProcessed -= HandlePassengerProcessed;
+                if (_debugShopIncomeFeedback) Debug.Log("[ShopFeedback] Unsubscribed from PassengerProcessor processed event.");
             }
         }
 
-        private void HandlePassengerProcessed(PassengerProcessor.PassengerProcessFeedbackData data)
+        private void HandlePassengerProcessed(PassengerProcessor.PassengerProcessedData data)
         {
             if (_debugShopIncomeFeedback)
             {

@@ -66,8 +66,7 @@ namespace IdleAirport.GameCore.Prestige
             if (_passengerProcessor == null)
                 return;
 
-            _passengerProcessor.OnPassengerManuallyProcessed += HandlePassengerProcessed;
-            _passengerProcessor.OnPassengerAutoProcessed += HandlePassengerProcessed;
+            _passengerProcessor.OnPassengerProcessed += HandlePassengerProcessed;
         }
 
         private void OnDisable()
@@ -75,8 +74,7 @@ namespace IdleAirport.GameCore.Prestige
             if (_passengerProcessor == null)
                 return;
 
-            _passengerProcessor.OnPassengerManuallyProcessed -= HandlePassengerProcessed;
-            _passengerProcessor.OnPassengerAutoProcessed -= HandlePassengerProcessed;
+            _passengerProcessor.OnPassengerProcessed -= HandlePassengerProcessed;
         }
 
         public bool TryPrestige()
@@ -99,7 +97,7 @@ namespace IdleAirport.GameCore.Prestige
             return true;
         }
 
-        private void HandlePassengerProcessed(PassengerProcessor.PassengerProcessFeedbackData data)
+        private void HandlePassengerProcessed(PassengerProcessor.PassengerProcessedData data)
         {
             RegisterPassportScanned();
         }

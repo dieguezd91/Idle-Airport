@@ -162,8 +162,7 @@ namespace IdleAirport.GameCore
             if (_passengerProcessor == null)
                 return;
 
-            _passengerProcessor.OnPassengerManuallyProcessed += HandleManualProcessed;
-            _passengerProcessor.OnPassengerAutoProcessed += HandleAutoProcessed;
+            _passengerProcessor.OnPassengerProcessed += HandlePassengerProcessed;
             _passengerProcessor.OnPassengerProcessFailed += HandleProcessFailed;
         }
 
@@ -172,28 +171,29 @@ namespace IdleAirport.GameCore
             if (_passengerProcessor == null)
                 return;
 
-            _passengerProcessor.OnPassengerManuallyProcessed -= HandleManualProcessed;
-            _passengerProcessor.OnPassengerAutoProcessed -= HandleAutoProcessed;
+            _passengerProcessor.OnPassengerProcessed -= HandlePassengerProcessed;
             _passengerProcessor.OnPassengerProcessFailed -= HandleProcessFailed;
         }
 
-        private void HandleManualProcessed(PassengerProcessor.PassengerProcessFeedbackData data)
+        private void HandlePassengerProcessed(PassengerProcessor.PassengerProcessedData data)
         {
-            PlayManualSuccess();
+            bool isManual = data.ProcessingType == PassengerProcessor.PassengerProcessingType.Manual;
+            Vector3 position = GetPassengerRewardFeedbackPosition(isManual);
+
+            if (isManual)
+                PlayManualSuccess();
+            else
+                PlayAutoSuccess();
+
             if (_floatingRewardText != null && data.BaseReward > 0.0)
-                _floatingRewardText.ShowManualReward(GetPassengerRewardFeedbackPosition(data), data.BaseReward);
+                _floatingRewardText.ShowManualReward(position, data.BaseReward);
         }
 
-        private void HandleAutoProcessed(PassengerProcessor.PassengerProcessFeedbackData data)
+        private Vector3 GetPassengerRewardFeedbackPosition(bool isManual)
         {
-            PlayAutoSuccess();
-            if (_floatingRewardText != null && data.BaseReward > 0.0)
-                _floatingRewardText.ShowManualReward(GetPassengerRewardFeedbackPosition(data), data.BaseReward);
-        }
-
-        private Vector3 GetPassengerRewardFeedbackPosition(PassengerProcessor.PassengerProcessFeedbackData data)
-        {
-            return data.FeedbackWorldPosition + _passengerRewardFeedbackSpawnOffset;
+            RectTransform target = isManual ? _manualFeedbackTarget : _autoFeedbackTarget;
+            Vector3 basePosition = target != null ? target.position : Vector3.zero;
+            return basePosition + _passengerRewardFeedbackSpawnOffset;
         }
 
         private void HandleProcessFailed(PassengerProcessor.PassengerProcessFailedFeedbackData data)
