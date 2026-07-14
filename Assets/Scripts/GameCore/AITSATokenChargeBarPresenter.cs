@@ -86,16 +86,20 @@ namespace IdleAirport.GameCore
 
             if (_previousState.HasValue)
             {
-                int previousTokens = _previousState.Value.CurrentTokens;
-                int currentTokens = state.CurrentTokens;
+                bool isPrestigeReset = _previousState.Value.OwnedCount > 0 && state.OwnedCount == 0;
+                if (!isPrestigeReset)
+                {
+                    int previousTokens = _previousState.Value.CurrentTokens;
+                    int currentTokens = state.CurrentTokens;
 
-                if (currentTokens < previousTokens)
-                    PlayPulse();
-                else if (currentTokens > previousTokens)
-                    PlayPulse();
+                    if (currentTokens < previousTokens)
+                        PlayPulse();
+                    else if (currentTokens > previousTokens)
+                        PlayPulse();
 
-                if (previousTokens > 0 && currentTokens == 0)
-                    PlayEmptyWarning();
+                    if (previousTokens > 0 && currentTokens == 0)
+                        PlayEmptyWarning();
+                }
             }
 
             _previousState = state;

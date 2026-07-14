@@ -15,6 +15,11 @@ namespace IdleAirport.GameCore.Prestige
 
         private readonly AirportPrestigeData _data = new();
         private bool _lastCanPrestige;
+        private bool _isPrestigeInProgress;
+
+        private EconomyController _economyController;
+        private AITSAScannerUpgrade _aiScannerUpgrade;
+        private StoresManager _storesManager;
 
         public event Action<int, int> PassportsProgressChanged;
         public event Action<bool> PrestigeAvailabilityChanged;
@@ -81,20 +86,36 @@ namespace IdleAirport.GameCore.Prestige
         {
             ValidateRequirementSettings();
 
-            if (!CanPrestige)
+            if (_isPrestigeInProgress || !CanPrestige)
                 return false;
 
-            _data.PrestigeCount++;
-            _data.GlobalPrestigeMultiplier = CalculateMultiplier(_data.PrestigeCount);
-            _data.PassportsScannedThisRun = 0;
+            _isPrestigeInProgress = true;
+            try
+            {
+                _data.PrestigeCount++;
+                _data.GlobalPrestigeMultiplier = CalculateMultiplier(_data.PrestigeCount);
+                _data.PassportsScannedThisRun = 0;
 
-            _visualApplier?.ApplyPrestigeVisuals(_data.PrestigeCount);
-            ResetRunState();
+                ResetRunState();
+                _visualApplier?.ApplyPrestigeVisuals(_data.PrestigeCount);
 
-            PassportsProgressChanged?.Invoke(PassportsScannedThisRun, PassportsRequiredForPrestige);
-            SetPrestigeAvailability(false);
-            PrestigeCompleted?.Invoke(PrestigeCount, GlobalPrestigeMultiplier);
-            return true;
+                PassportsProgressChanged?.Invoke(PassportsScannedThisRun, PassportsRequiredForPrestige);
+                SetPrestigeAvailability(false);
+                PrestigeCompleted?.Invoke(PrestigeCount, GlobalPrestigeMultiplier);
+                return true;
+            }
+            finally
+            {
+                _isPrestigeInProgress = false;
+            }
+        }
+
+        private void ResetRunState()
+        {
+            _passengerProcessor?.ResetForPrestige();
+            _aiScannerUpgrade?.ResetForPrestige();
+            _storesManager?.ResetForPrestige();
+            _economyController?.ResetForPrestige();
         }
 
         private void HandlePassengerProcessed(PassengerProcessor.PassengerProcessedData data)
@@ -137,44 +158,38 @@ namespace IdleAirport.GameCore.Prestige
             if (_resettableBehaviours == null)
                 _resettableBehaviours = new List<MonoBehaviour>();
 
-            if (_resettableBehaviours.Count > 0)
-                return;
-
-            AddResettableIfFound(FindFirstObjectByType<EconomyController>());
-            AddResettableIfFound(FindFirstObjectByType<AITSAScannerUpgrade>());
-            AddResettableIfFound(FindFirstObjectByType<StoresManager>());
-            AddResettableIfFound(_passengerProcessor);
+            ResolveTypedResettables();
         }
 
-        private void AddResettableIfFound(MonoBehaviour behaviour)
+        private void ResolveTypedResettables()
         {
-            if (behaviour == null || behaviour is not IPrestigeResettable)
-                return;
+            _economyController = ResolveResettable<EconomyController>(_economyController);
+            _aiScannerUpgrade = ResolveResettable<AITSAScannerUpgrade>(_aiScannerUpgrade);
+            _storesManager = ResolveResettable<StoresManager>(_storesManager);
 
-            if (!_resettableBehaviours.Contains(behaviour))
-                _resettableBehaviours.Add(behaviour);
+            if (_passengerProcessor != null && !_resettableBehaviours.Contains(_passengerProcessor))
+                _resettableBehaviours.Add(_passengerProcessor);
         }
 
-        private void ResetRunState()
+        private T ResolveResettable<T>(T current) where T : MonoBehaviour, IPrestigeResettable
         {
-            if (_resettableBehaviours == null)
-                return;
+            if (current != null)
+                return current;
 
-            for (int i = 0; i < _resettableBehaviours.Count; i++)
+            if (_resettableBehaviours != null)
             {
-                MonoBehaviour behaviour = _resettableBehaviours[i];
-                if (behaviour == null)
-                    continue;
-
-                if (behaviour is IPrestigeResettable resettable)
+                for (int i = 0; i < _resettableBehaviours.Count; i++)
                 {
-                    resettable.ResetForPrestige();
-                }
-                else
-                {
-                    Debug.LogWarning($"{behaviour.name} does not implement IPrestigeResettable.", behaviour);
+                    if (_resettableBehaviours[i] is T typed)
+                        return typed;
                 }
             }
+
+            T found = FindFirstObjectByType<T>();
+            if (found != null && _resettableBehaviours != null && !_resettableBehaviours.Contains(found))
+                _resettableBehaviours.Add(found);
+
+            return found;
         }
 
         private static double CalculateMultiplier(int prestigeCount)

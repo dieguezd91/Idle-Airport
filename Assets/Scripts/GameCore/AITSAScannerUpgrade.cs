@@ -114,7 +114,6 @@ namespace IdleAirport.GameCore
 
         private int _baseTokensPerScanner;
 
-        public event Action<AITSAUpgradePurchaseResult> OnPurchaseAttempted;
         public event Action<AIStateData> OnAIStateChanged;
 
         public float CurrentCost => _baseCost * Mathf.Pow(_costMultiplier, OwnedCount);
@@ -198,27 +197,19 @@ namespace IdleAirport.GameCore
                 if (_economyController == null)
                 {
                     Debug.LogError("AITSAScannerUpgrade: EconomyController is not assigned!");
-                    OnPurchaseAttempted?.Invoke(AITSAUpgradePurchaseResult.MissingEconomy);
                     return AITSAUpgradePurchaseResult.MissingEconomy;
                 }
 
                 Debug.LogError("AITSAScannerUpgrade: PassengerProcessor is not assigned!");
-                OnPurchaseAttempted?.Invoke(AITSAUpgradePurchaseResult.MissingPassengerProcessor);
                 return AITSAUpgradePurchaseResult.MissingPassengerProcessor;
             }
 
             float cost = CurrentCost;
             if (_economyController.Money < cost)
-            {
-                OnPurchaseAttempted?.Invoke(AITSAUpgradePurchaseResult.InsufficientFunds);
                 return AITSAUpgradePurchaseResult.InsufficientFunds;
-            }
 
             if (!SpendMoney(cost))
-            {
-                OnPurchaseAttempted?.Invoke(AITSAUpgradePurchaseResult.SpendFailed);
                 return AITSAUpgradePurchaseResult.SpendFailed;
-            }
 
             bool wasInactive = _ownedCount == 0;
 
@@ -227,11 +218,9 @@ namespace IdleAirport.GameCore
             ApplyCurrentUpgradeState();
             PublishAIState();
 
-            AITSAUpgradePurchaseResult result = wasInactive
+            return wasInactive
                 ? AITSAUpgradePurchaseResult.SuccessFirstPurchase
                 : AITSAUpgradePurchaseResult.SuccessUpgrade;
-            OnPurchaseAttempted?.Invoke(result);
-            return result;
         }
 
         public AITokenPackPurchaseResult PurchaseTokenPack()
@@ -309,7 +298,6 @@ namespace IdleAirport.GameCore
                 _passengerProcessor.DisableAIScanner();
 
             PublishAIState();
-            OnPurchaseAttempted?.Invoke(AITSAUpgradePurchaseResult.SuccessFirstPurchase);
         }
 
         private void ApplyCurrentUpgradeState()

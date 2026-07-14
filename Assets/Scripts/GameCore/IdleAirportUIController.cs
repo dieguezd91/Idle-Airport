@@ -382,7 +382,7 @@ namespace IdleAirport.GameCore
                 int prev = _previousAIState.Value.EffectiveScannerCount;
                 int curr = state.EffectiveScannerCount;
 
-                if (prev > 0 && curr == 0)
+                if (prev > 0 && curr == 0 && state.OwnedCount > 0)
                     ShowHUDFeedback("AI Scanner out of tokens");
             }
 
