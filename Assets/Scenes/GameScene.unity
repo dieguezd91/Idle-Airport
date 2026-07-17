@@ -3853,7 +3853,7 @@ GameObject:
   - component: {fileID: 800000069}
   - component: {fileID: 800000070}
   m_Layer: 5
-  m_Name: ValueText
+  m_Name: PrestigeValueText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8750,9 +8750,76 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9dfc2986109d69543b9db35a8002305c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _prestigeService: {fileID: 910100003}
   _boardingAreaRect: {fileID: 800000175}
   _waitingRoom: {fileID: 3000000142}
   _passengerProcessor: {fileID: 890721249}
+  _palettes:
+  - Entrance:
+      BG1: {r: 0.42745098, g: 0.40784314, b: 0.38039213, a: 1}
+      BG2: {r: 0.27843136, g: 0.2745098, b: 0.2705882, a: 1}
+      Wall: {r: 0.3333333, g: 0.32941175, b: 0.32941175, a: 1}
+      Border: {r: 0.094117604, g: 0.094117604, b: 0.090196066, a: 1}
+    Security:
+      BG1: {r: 0.42745098, g: 0.40784314, b: 0.38039213, a: 1}
+      BG2: {r: 0.27843136, g: 0.2745098, b: 0.2705882, a: 1}
+      Wall: {r: 0.3333333, g: 0.32941175, b: 0.32941175, a: 1}
+      Border: {r: 0.094117604, g: 0.094117604, b: 0.090196066, a: 1}
+    Shops:
+      BG1: {r: 0.47058827, g: 0.36078432, b: 0.25882354, a: 1}
+      BG2: {r: 0.5176471, g: 0.40000004, b: 0.2901961, a: 1}
+      Wall: {r: 0.41176474, g: 0.30980393, b: 0.22352943, a: 1}
+      Border: {r: 0.24313727, g: 0.17254902, b: 0.121568635, a: 1}
+    Boarding:
+      BG1: {r: 0.29803923, g: 0.30980393, b: 0.3254902, a: 1}
+      BG2: {r: 0.3921569, g: 0.4039216, b: 0.41960788, a: 1}
+      Wall: {r: 0.34074074, g: 0.34074074, b: 0.368, a: 1}
+      Border: {r: 0.20784315, g: 0.21176472, b: 0.227451, a: 1}
+  - Entrance:
+      BG1: {r: 0.52, g: 0.22, b: 0.18, a: 1}
+      BG2: {r: 0.40, g: 0.16, b: 0.12, a: 1}
+      Wall: {r: 0.46, g: 0.20, b: 0.15, a: 1}
+      Border: {r: 0.20, g: 0.08, b: 0.05, a: 1}
+    Security:
+      BG1: {r: 0.46, g: 0.20, b: 0.25, a: 1}
+      BG2: {r: 0.34, g: 0.14, b: 0.18, a: 1}
+      Wall: {r: 0.42, g: 0.18, b: 0.22, a: 1}
+      Border: {r: 0.18, g: 0.07, b: 0.08, a: 1}
+    Shops:
+      BG1: {r: 0.55, g: 0.30, b: 0.18, a: 1}
+      BG2: {r: 0.42, g: 0.22, b: 0.10, a: 1}
+      Wall: {r: 0.50, g: 0.26, b: 0.14, a: 1}
+      Border: {r: 0.22, g: 0.10, b: 0.04, a: 1}
+    Boarding:
+      BG1: {r: 0.40, g: 0.18, b: 0.12, a: 1}
+      BG2: {r: 0.30, g: 0.12, b: 0.08, a: 1}
+      Wall: {r: 0.36, g: 0.16, b: 0.10, a: 1}
+      Border: {r: 0.16, g: 0.06, b: 0.03, a: 1}
+  - Entrance:
+      BG1: {r: 0.15, g: 0.30, b: 0.52, a: 1}
+      BG2: {r: 0.10, g: 0.22, b: 0.40, a: 1}
+      Wall: {r: 0.18, g: 0.34, b: 0.55, a: 1}
+      Border: {r: 0.06, g: 0.14, b: 0.28, a: 1}
+    Security:
+      BG1: {r: 0.12, g: 0.32, b: 0.46, a: 1}
+      BG2: {r: 0.08, g: 0.24, b: 0.36, a: 1}
+      Wall: {r: 0.14, g: 0.38, b: 0.52, a: 1}
+      Border: {r: 0.05, g: 0.16, b: 0.30, a: 1}
+    Shops:
+      BG1: {r: 0.18, g: 0.42, b: 0.50, a: 1}
+      BG2: {r: 0.12, g: 0.30, b: 0.40, a: 1}
+      Wall: {r: 0.22, g: 0.48, b: 0.56, a: 1}
+      Border: {r: 0.07, g: 0.20, b: 0.32, a: 1}
+    Boarding:
+      BG1: {r: 0.16, g: 0.26, b: 0.50, a: 1}
+      BG2: {r: 0.22, g: 0.34, b: 0.58, a: 1}
+      Wall: {r: 0.20, g: 0.30, b: 0.55, a: 1}
+      Border: {r: 0.08, g: 0.16, b: 0.34, a: 1}
+  _paletteTransitionDuration: 0.25
+  _entranceRoot: {fileID: 5992781477784957648}
+  _securityRoot: {fileID: 4017169108016534224}
+  _shopsRoot: {fileID: 7798262581201026575}
+  _boardingRoot: {fileID: 9110652267487852153}
 --- !u!114 &910100003
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8769,7 +8836,6 @@ MonoBehaviour:
   _passportRequirementGrowthMultiplier: 1.75
   _passportRequirementRoundStep: 10
   _passengerProcessor: {fileID: 890721249}
-  _visualApplier: {fileID: 910100002}
   _resettableBehaviours:
   - {fileID: 17876993}
   - {fileID: 1643821349}
@@ -8791,6 +8857,7 @@ MonoBehaviour:
   _passportProgressText: {fileID: 1618172904}
   _passportIcon: {fileID: 910100023}
   _prestigeButton: {fileID: 2005626845}
+  _prestigeLevelText: {fileID: 800000070}
 --- !u!1 &910100020
 GameObject:
   m_ObjectHideFlags: 0
@@ -14783,6 +14850,14 @@ PrefabInstance:
     - target: {fileID: 237598166515099464, guid: 6856a34658de1db4b884a12526f819c0, type: 3}
       propertyPath: m_Name
       value: EntranceArea
+      objectReference: {fileID: 0}
+    - target: {fileID: 442354718040055928, guid: 6856a34658de1db4b884a12526f819c0, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3341336181431668792, guid: 6856a34658de1db4b884a12526f819c0, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7798262581473040104, guid: 6856a34658de1db4b884a12526f819c0, type: 3}
       propertyPath: m_Pivot.x

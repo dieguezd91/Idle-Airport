@@ -10,7 +10,6 @@ namespace IdleAirport.GameCore.Prestige
         [SerializeField] private float _passportRequirementGrowthMultiplier = 1.75f;
         [SerializeField] private int _passportRequirementRoundStep = 10;
         [SerializeField] private PassengerProcessor _passengerProcessor;
-        [SerializeField] private AirportPrestigeVisualApplier _visualApplier;
         [SerializeField] private List<MonoBehaviour> _resettableBehaviours = new();
 
         private readonly AirportPrestigeData _data = new();
@@ -45,7 +44,6 @@ namespace IdleAirport.GameCore.Prestige
                 return;
 
             GameObject serviceObject = new GameObject("AirportPrestigeService");
-            serviceObject.AddComponent<AirportPrestigeVisualApplier>();
             serviceObject.AddComponent<AirportPrestigeService>();
         }
 
@@ -55,7 +53,6 @@ namespace IdleAirport.GameCore.Prestige
             ValidateRequirementSettings();
             _data.GlobalPrestigeMultiplier = CalculateMultiplier(_data.PrestigeCount);
             _lastCanPrestige = CanPrestige;
-            _visualApplier?.ApplyPrestigeVisuals(_data.PrestigeCount);
         }
 
         private void OnValidate()
@@ -97,7 +94,6 @@ namespace IdleAirport.GameCore.Prestige
                 _data.PassportsScannedThisRun = 0;
 
                 ResetRunState();
-                _visualApplier?.ApplyPrestigeVisuals(_data.PrestigeCount);
 
                 PassportsProgressChanged?.Invoke(PassportsScannedThisRun, PassportsRequiredForPrestige);
                 SetPrestigeAvailability(false);
@@ -151,9 +147,6 @@ namespace IdleAirport.GameCore.Prestige
         {
             if (_passengerProcessor == null)
                 _passengerProcessor = FindFirstObjectByType<PassengerProcessor>();
-
-            if (_visualApplier == null)
-                _visualApplier = GetComponent<AirportPrestigeVisualApplier>() ?? FindFirstObjectByType<AirportPrestigeVisualApplier>();
 
             if (_resettableBehaviours == null)
                 _resettableBehaviours = new List<MonoBehaviour>();
