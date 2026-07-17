@@ -178,7 +178,9 @@ namespace IdleAirport.GameCore
         private void HandlePassengerProcessed(PassengerProcessor.PassengerProcessedData data)
         {
             bool isManual = data.ProcessingType == PassengerProcessor.PassengerProcessingType.Manual;
-            Vector3 position = GetPassengerRewardFeedbackPosition(isManual);
+            Vector3 position = data.FeedbackWorldPosition != Vector3.zero
+                ? data.FeedbackWorldPosition + _passengerRewardFeedbackSpawnOffset
+                : GetPassengerRewardFeedbackPosition(isManual);
 
             if (isManual)
                 PlayManualSuccess();

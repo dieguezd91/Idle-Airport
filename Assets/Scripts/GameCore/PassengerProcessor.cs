@@ -31,18 +31,21 @@ namespace IdleAirport.GameCore
                 PassengerProcessingType processingType,
                 double totalReward,
                 double baseReward,
-                double shopBonus)
+                double shopBonus,
+                Vector3 feedbackWorldPosition)
             {
                 ProcessingType = processingType;
                 TotalReward = totalReward;
                 BaseReward = baseReward;
                 ShopBonus = shopBonus;
+                FeedbackWorldPosition = feedbackWorldPosition;
             }
 
             public PassengerProcessingType ProcessingType { get; }
             public double TotalReward { get; }
             public double BaseReward { get; }
             public double ShopBonus { get; }
+            public Vector3 FeedbackWorldPosition { get; }
         }
 
         public readonly struct PassengerProcessFailedFeedbackData
@@ -276,7 +279,8 @@ namespace IdleAirport.GameCore
                     PassengerProcessingType.Manual,
                     reward.FinalReward,
                     reward.BaseReward,
-                    reward.ShopBonus));
+                    reward.ShopBonus,
+                    scanner.transform.position));
             }
 
             FillAvailableManualScanners();
@@ -361,7 +365,8 @@ namespace IdleAirport.GameCore
                 PassengerProcessingType.Auto,
                 reward.FinalReward,
                 reward.BaseReward,
-                reward.ShopBonus));
+                reward.ShopBonus,
+                _aiScanner != null ? _aiScanner.transform.position : Vector3.zero));
 
             if (_aiTSAScannerUpgrade != null && !_aiTSAScannerUpgrade.TryConsumeTokenAfterAutoScan())
             {
