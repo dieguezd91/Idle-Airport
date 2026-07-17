@@ -41,18 +41,19 @@ namespace IdleAirport.GameCore
             return _moneyPerPassenger;
         }
 
-        public void RewardProcessedPassenger(double totalReward)
+        public double RewardProcessedPassenger(double totalReward)
         {
             if (totalReward < 0)
             {
                 Debug.LogWarning($"EconomyController: Processed passenger reward cannot be negative: {totalReward}");
-                return;
+                return 0d;
             }
 
-            totalReward *= GetPrestigeMultiplier();
+            double finalPassengerReward = AirportPrestigeRewardCalculator.CalculateFinalPassengerReward(totalReward, GetPrestigeMultiplier());
 
             AddPassengers(1);
-            AddMoney(totalReward);
+            AddMoney(finalPassengerReward);
+            return finalPassengerReward;
         }
 
         public void AddMoney(double amount)

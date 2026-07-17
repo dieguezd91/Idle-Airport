@@ -274,7 +274,7 @@ namespace IdleAirport.GameCore
                 processedAny = true;
                 OnPassengerProcessed?.Invoke(new PassengerProcessedData(
                     PassengerProcessingType.Manual,
-                    reward.TotalReward,
+                    reward.FinalReward,
                     reward.BaseReward,
                     reward.ShopBonus));
             }
@@ -359,7 +359,7 @@ namespace IdleAirport.GameCore
 
             OnPassengerProcessed?.Invoke(new PassengerProcessedData(
                 PassengerProcessingType.Auto,
-                reward.TotalReward,
+                reward.FinalReward,
                 reward.BaseReward,
                 reward.ShopBonus));
 
@@ -417,7 +417,7 @@ namespace IdleAirport.GameCore
             PassengerRewardBreakdown reward = GetPassengerRewardBreakdown();
             if (_economyController == null) return reward;
 
-            _economyController.RewardProcessedPassenger(reward.TotalReward);
+            reward = reward.WithFinalReward(_economyController.RewardProcessedPassenger(reward.TotalReward));
             return reward;
         }
 
@@ -713,15 +713,22 @@ namespace IdleAirport.GameCore
 
         private readonly struct PassengerRewardBreakdown
         {
-            public PassengerRewardBreakdown(double baseReward, double shopBonus)
+            public PassengerRewardBreakdown(double baseReward, double shopBonus, double? finalReward = null)
             {
                 BaseReward = baseReward;
                 ShopBonus = shopBonus;
+                FinalReward = finalReward ?? (baseReward + shopBonus);
             }
 
             public double BaseReward { get; }
             public double ShopBonus { get; }
             public double TotalReward => BaseReward + ShopBonus;
+            public double FinalReward { get; }
+
+            public PassengerRewardBreakdown WithFinalReward(double finalReward)
+            {
+                return new PassengerRewardBreakdown(BaseReward, ShopBonus, finalReward);
+            }
         }
     }
 }

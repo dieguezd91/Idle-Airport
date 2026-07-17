@@ -6,9 +6,11 @@ namespace IdleAirport.GameCore.Prestige
 {
     public sealed class AirportPrestigeService : MonoBehaviour, IPrestigeMultiplierProvider
     {
+
         [SerializeField] private int _basePassportsRequiredForPrestige = 50;
         [SerializeField] private float _passportRequirementGrowthMultiplier = 1.75f;
         [SerializeField] private int _passportRequirementRoundStep = 10;
+        [SerializeField] private AirportPrestigeMultiplierConfig _multiplierConfig = new();
         [SerializeField] private PassengerProcessor _passengerProcessor;
         [SerializeField] private List<MonoBehaviour> _resettableBehaviours = new();
 
@@ -32,6 +34,7 @@ namespace IdleAirport.GameCore.Prestige
             _passportRequirementRoundStep,
             PrestigeCount);
         public double GlobalPrestigeMultiplier => Math.Max(1d, _data.GlobalPrestigeMultiplier);
+        public double NextPrestigeMultiplier => CalculateMultiplier(PrestigeCount + 1);
         public bool CanPrestige => PassportsScannedThisRun >= PassportsRequiredForPrestige;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -58,6 +61,9 @@ namespace IdleAirport.GameCore.Prestige
         private void OnValidate()
         {
             ValidateRequirementSettings();
+            if (_multiplierConfig == null)
+                _multiplierConfig = new AirportPrestigeMultiplierConfig();
+            _multiplierConfig.Validate();
         }
 
         private void OnEnable()
@@ -185,9 +191,13 @@ namespace IdleAirport.GameCore.Prestige
             return found;
         }
 
-        private static double CalculateMultiplier(int prestigeCount)
+        private double CalculateMultiplier(int prestigeCount)
         {
-            return Math.Pow(2d, Math.Max(0, prestigeCount));
+            if (_multiplierConfig == null)
+                _multiplierConfig = new AirportPrestigeMultiplierConfig();
+
+            _multiplierConfig.Validate();
+            return _multiplierConfig.CalculateMultiplier(prestigeCount);
         }
     }
 }

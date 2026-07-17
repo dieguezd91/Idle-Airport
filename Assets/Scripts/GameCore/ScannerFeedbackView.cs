@@ -186,7 +186,7 @@ namespace IdleAirport.GameCore
                 PlayAutoSuccess();
 
             if (_floatingRewardText != null && data.BaseReward > 0.0)
-                _floatingRewardText.ShowManualReward(position, data.BaseReward);
+                _floatingRewardText.ShowManualReward(position, data.TotalReward);
         }
 
         private Vector3 GetPassengerRewardFeedbackPosition(bool isManual)
