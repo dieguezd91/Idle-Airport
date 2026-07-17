@@ -8672,7 +8672,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _passengerProcessor: {fileID: 890721249}
   _floatingRewardText: {fileID: 910000001}
-  _manualFeedbackTarget: {fileID: 3000000241}
+  _manualFeedbackTarget: {fileID: 1789571186}
   _autoFeedbackTarget: {fileID: 7529840857996125075}
   _passengerRewardFeedbackSpawnOffset: {x: 0, y: 52, z: 0}
   _pulseDuration: 0.18
