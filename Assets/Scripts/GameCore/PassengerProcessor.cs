@@ -100,6 +100,7 @@ namespace IdleAirport.GameCore
         private string _lastManualScanBlockReason;
         private ManualScanFailureReason _lastManualScanFailureReason;
         private int _currentPrestigeCount;
+        private readonly List<PassengerUIVisual> _currentBatchExtraVisuals = new();
 
         public int ManualClickValue => _manualClickValue;
         public float CurrentProcessingDuration => _aiTSAScannerUpgrade != null
@@ -212,18 +213,62 @@ namespace IdleAirport.GameCore
             if (scanner == null || !scanner.IsOperational || scanner.IsBusy) return false;
             if (_aiTSAScannerUpgrade != null && !_aiTSAScannerUpgrade.CanAutoProcess) return false;
             if (_queue == null || !_queue.HasPassengerReady) return false;
-            if (_waitingRoom == null || !_waitingRoom.TryReserveSlot()) return false;
+
+            int multiplier = _aiTSAScannerUpgrade != null ? _aiTSAScannerUpgrade.PassengersPerScan : 1;
+            if (multiplier < 1) multiplier = 1;
+
+            int availableInQueue = _queue.ActivePassengerCount;
+            int reservable = _waitingRoom != null ? (_waitingRoom.Capacity - (_waitingRoom.CurrentCount + _waitingRoom.ReservedCount)) : 0;
+            int toProcess = Mathf.Min(multiplier, Mathf.Min(availableInQueue, reservable));
+            if (toProcess <= 0) return false;
+
+            for (int i = 0; i < toProcess; i++)
+            {
+                if (!_waitingRoom.TryReserveSlot())
+                {
+                    for (int j = 0; j < i; j++)
+                        _waitingRoom.ReleaseReservedSlot();
+                    return false;
+                }
+            }
 
             PassengerUIVisual passenger;
             if (!_queue.TryDequeuePassenger(out passenger))
             {
-                _waitingRoom.ReleaseReservedSlot();
+                for (int i = 0; i < toProcess; i++)
+                    _waitingRoom.ReleaseReservedSlot();
                 return false;
+            }
+
+            _currentBatchExtraVisuals.Clear();
+            int extraCount = toProcess - 1;
+            for (int i = 0; i < extraCount; i++)
+            {
+                if (_queue.TryDequeuePassenger(out PassengerUIVisual extraPassenger))
+                {
+                    if (extraPassenger != null)
+                    {
+                        extraPassenger.gameObject.SetActive(false);
+                        _currentBatchExtraVisuals.Add(extraPassenger);
+                    }
+                }
             }
 
             if (!scanner.TryStartAutoProcessing(passenger, OnAutoScannerCompleted))
             {
-                _waitingRoom.ReleaseReservedSlot();
+                for (int i = 0; i < toProcess; i++)
+                    _waitingRoom.ReleaseReservedSlot();
+                
+                passenger.Recycle();
+                for (int i = 0; i < _currentBatchExtraVisuals.Count; i++)
+                {
+                    if (_currentBatchExtraVisuals[i] != null)
+                    {
+                        _currentBatchExtraVisuals[i].gameObject.SetActive(true);
+                        _currentBatchExtraVisuals[i].Recycle();
+                    }
+                }
+                _currentBatchExtraVisuals.Clear();
                 return false;
             }
 
@@ -358,15 +403,40 @@ namespace IdleAirport.GameCore
                 consumeReservation: true,
                 out PassengerRewardBreakdown reward,
                 instantWaitingRoomPlacement: true);
-            if (!processed)
-                return;
+            if (processed)
+            {
+                OnPassengerProcessed?.Invoke(new PassengerProcessedData(
+                    PassengerProcessingType.Auto,
+                    reward.FinalReward,
+                    reward.BaseReward,
+                    reward.ShopBonus,
+                    _aiScanner != null ? _aiScanner.transform.position : Vector3.zero));
+            }
 
-            OnPassengerProcessed?.Invoke(new PassengerProcessedData(
-                PassengerProcessingType.Auto,
-                reward.FinalReward,
-                reward.BaseReward,
-                reward.ShopBonus,
-                _aiScanner != null ? _aiScanner.transform.position : Vector3.zero));
+            for (int i = 0; i < _currentBatchExtraVisuals.Count; i++)
+            {
+                PassengerUIVisual extra = _currentBatchExtraVisuals[i];
+                if (extra != null)
+                {
+                    extra.gameObject.SetActive(true);
+                    bool extraProcessed = CompleteProcessedPassenger(
+                        extra,
+                        consumeReservation: true,
+                        out PassengerRewardBreakdown extraReward,
+                        instantWaitingRoomPlacement: true);
+
+                    if (extraProcessed)
+                    {
+                        OnPassengerProcessed?.Invoke(new PassengerProcessedData(
+                            PassengerProcessingType.Auto,
+                            extraReward.FinalReward,
+                            extraReward.BaseReward,
+                            extraReward.ShopBonus,
+                            _aiScanner != null ? _aiScanner.transform.position : Vector3.zero));
+                    }
+                }
+            }
+            _currentBatchExtraVisuals.Clear();
 
             if (_aiTSAScannerUpgrade != null && !_aiTSAScannerUpgrade.TryConsumeTokenAfterAutoScan())
             {

@@ -42,7 +42,7 @@ namespace IdleAirport.GameCore
         public event Action OnWaitingRoomFull;
 
         public int VisualCapacity => Mathf.Max(0, _columns * _rows);
-        public int Capacity => _maxPassengers > 0 ? Mathf.Min(_maxPassengers, VisualCapacity) : VisualCapacity;
+        public int Capacity => _maxPassengers > 0 ? _maxPassengers : VisualCapacity;
 
         public bool HasCapacity => HasReservableCapacity;
         public bool HasPhysicalCapacity => _passengers.Count < Capacity;
@@ -129,6 +129,7 @@ namespace IdleAirport.GameCore
                 _passengersPerBoarding = _basePassengersPerBoarding;
                 _isPrestigeBoardingLayoutApplied = false;
                 ReapplyGridPositions();
+                RefreshVisualsVisibility();
                 NotifyOccupancyChanged();
                 return;
             }
@@ -145,12 +146,13 @@ namespace IdleAirport.GameCore
             _areaSize = _baseAreaSize;
             _columns = Mathf.Max(1, targetColumns);
             _rows = Mathf.Max(1, targetRows);
-            _maxPassengers = Mathf.Min(targetCapacity, _columns * _rows);
+            _maxPassengers = targetCapacity;
             _cellSize = CalculatePrestigeCellSize(_columns, _rows);
             _passengersPerBoarding = _basePassengersPerBoarding * Mathf.RoundToInt(Mathf.Pow(2f, prestigeCount));
             _isPrestigeBoardingLayoutApplied = true;
 
             ReapplyGridPositions();
+            RefreshVisualsVisibility();
             NotifyOccupancyChanged();
         }
 
@@ -174,6 +176,7 @@ namespace IdleAirport.GameCore
             passenger.transform.SetParent(_container, true);
             passenger.MoveTo(CalculatePosition(_passengers.Count));
             _passengers.Add(passenger);
+            RefreshVisualsVisibility();
             NotifyOccupancyChanged();
             return true;
         }
@@ -186,6 +189,7 @@ namespace IdleAirport.GameCore
             passenger.transform.SetParent(_container, true);
             passenger.SetPositionImmediate(CalculatePosition(_passengers.Count));
             _passengers.Add(passenger);
+            RefreshVisualsVisibility();
             NotifyOccupancyChanged();
             return true;
         }
@@ -246,6 +250,7 @@ namespace IdleAirport.GameCore
             }
 
             ReapplyGridPositions();
+            RefreshVisualsVisibility();
             NotifyOccupancyChanged();
             OnPassengersBoarded?.Invoke(boardedCount);
         }
@@ -286,8 +291,34 @@ namespace IdleAirport.GameCore
 
         private void ReapplyGridPositions()
         {
+            int maxVisuals = VisualCapacity;
             for (int i = 0; i < _passengers.Count; i++)
-                _passengers[i].MoveTo(CalculatePosition(i));
+            {
+                if (i < maxVisuals)
+                {
+                    _passengers[i].MoveTo(CalculatePosition(i));
+                }
+            }
+        }
+
+        private void RefreshVisualsVisibility()
+        {
+            int maxVisuals = VisualCapacity;
+            for (int i = 0; i < _passengers.Count; i++)
+            {
+                if (_passengers[i] != null)
+                {
+                    bool shouldBeVisible = i < maxVisuals;
+                    if (_passengers[i].gameObject.activeSelf != shouldBeVisible)
+                    {
+                        _passengers[i].gameObject.SetActive(shouldBeVisible);
+                        if (shouldBeVisible)
+                        {
+                            _passengers[i].SetPositionImmediate(CalculatePosition(i));
+                        }
+                    }
+                }
+            }
         }
 
         private Vector2 CalculatePosition(int index)
@@ -332,12 +363,7 @@ namespace IdleAirport.GameCore
 
         private void ValidateCapacityConfiguration()
         {
-            if (_maxPassengers > VisualCapacity)
-            {
-                Debug.LogWarning(
-                    $"WaitingRoomUIController: _maxPassengers ({_maxPassengers}) exceeds visual capacity ({VisualCapacity}). " +
-                    "Capacity has been clamped to the visual limit.", this);
-            }
+            // Do not show warning if we intentionally allow maxPassengers to exceed VisualCapacity in prestige levels
         }
 
         private void NotifyOccupancyChanged()

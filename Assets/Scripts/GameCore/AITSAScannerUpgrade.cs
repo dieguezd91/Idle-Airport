@@ -129,11 +129,37 @@ namespace IdleAirport.GameCore
         public int EffectiveScannerCount => CalculateEffectiveScannerCount();
         public bool HasTokens => CurrentTokens > 0;
         public bool CanAutoProcess => EffectiveScannerCount > 0;
+        public int PassengersPerScan
+        {
+            get
+            {
+                if (OwnedCount <= 0) return 0;
+                int effectiveLevel = Mathf.Max(EffectiveScannerCount - 1, 0);
+                float theoreticalDuration = _baseProcessingDuration * Mathf.Pow(_processingDurationMultiplierPerLevel, effectiveLevel);
+                if (theoreticalDuration < _minimumProcessingDuration && _minimumProcessingDuration > 0f)
+                {
+                    float factor = _minimumProcessingDuration / theoreticalDuration;
+                    return Mathf.Max(1, Mathf.RoundToInt(factor));
+                }
+                return 1;
+            }
+        }
         public float TokenFill01 => MaxTokens <= 0 ? 0f : Mathf.Clamp01(CurrentTokens / (float)MaxTokens);
         public float CurrentProcessingDuration => CanAutoProcess ? GetProcessingDurationForScannerCount(EffectiveScannerCount) : 0f;
-        public float CurrentPassengersPerSecond => CurrentProcessingDuration > 0f ? 1f / CurrentProcessingDuration : 0f;
+        public float CurrentPassengersPerSecond => CurrentProcessingDuration > 0f ? (1f / CurrentProcessingDuration) * PassengersPerScan : 0f;
         public float NextProcessingDuration => GetProcessingDurationForScannerCount(_ownedCount + 1);
-        public float NextPassengersPerSecond => NextProcessingDuration > 0f ? 1f / NextProcessingDuration : 0f;
+        public float NextPassengersPerSecond => NextProcessingDuration > 0f ? (1f / NextProcessingDuration) * NextPassengersPerScan() : 0f;
+
+        private int NextPassengersPerScan()
+        {
+            float theoreticalDuration = _baseProcessingDuration * Mathf.Pow(_processingDurationMultiplierPerLevel, _ownedCount);
+            if (theoreticalDuration < _minimumProcessingDuration && _minimumProcessingDuration > 0f)
+            {
+                float factor = _minimumProcessingDuration / theoreticalDuration;
+                return Mathf.Max(1, Mathf.RoundToInt(factor));
+            }
+            return 1;
+        }
 
         private void Awake()
         {
