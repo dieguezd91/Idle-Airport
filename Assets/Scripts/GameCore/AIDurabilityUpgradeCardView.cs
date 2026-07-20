@@ -4,7 +4,7 @@ namespace IdleAirport.GameCore
 {
     public sealed class AIDurabilityUpgradeCardView : PurchaseCardView
     {
-        private const string Title = "Durability";
+        private const string Title = "Token Capacity";
         private const string LockedLabel = "Locked";
 
         public void SetData(AITSAScannerUpgrade upgrade)
@@ -24,10 +24,10 @@ namespace IdleAirport.GameCore
                     : PurchaseCardVisualState.Locked;
 
             string stateLabel = hasScanner
-                ? $"Cap {upgrade.TokensPerScanner}"
+                ? $"Max Capacity: {upgrade.TokensPerScanner}"
                 : LockedLabel;
             string benefitLabel = hasScanner
-                ? $"+{upgrade.TokensPerDurabilityUpgrade}"
+                ? $"Upgrade: +{upgrade.TokensPerDurabilityUpgrade} Max"
                 : string.Empty;
 
             string displayName = (hasScanner && upgrade.DurabilityUpgradeCount > 0)
@@ -45,7 +45,7 @@ namespace IdleAirport.GameCore
             SetText(_nameText, displayName);
             SetText(_stateText, CombineLines(stateLabel, benefitLabel));
             SetText(_actionText, actionLabel);
-            SetText(_iconText, BuildShortAcronym(Title));
+            SetText(_iconText, "CAP");
             ApplyVisualState(visualState, canPurchase);
         }
 
@@ -64,7 +64,7 @@ namespace IdleAirport.GameCore
             SetText(_nameText, Title);
             SetText(_stateText, LockedLabel);
             SetText(_actionText, string.Empty);
-            SetText(_iconText, BuildShortAcronym(Title));
+            SetText(_iconText, "CAP");
             ApplyVisualState(PurchaseCardVisualState.Locked, false);
         }
     }

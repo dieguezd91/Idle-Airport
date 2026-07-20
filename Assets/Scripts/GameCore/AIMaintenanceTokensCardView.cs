@@ -7,9 +7,9 @@ namespace IdleAirport.GameCore
 {
     public sealed class AIMaintenanceTokensCardView : PurchaseCardView
     {
-        private const string Title = "Tokens";
+        private const string Title = "Refill Tokens";
         private const string LockedLabel = "Locked";
-        private const string FullLabel = "Full";
+        private const string FullLabel = "Tokens Full";
 
         [Header("Card Progress Bar")]
         [SerializeField] private Image _cardBackgroundImage;
@@ -42,7 +42,7 @@ namespace IdleAirport.GameCore
                 ? string.Empty
                 : isFull
                     ? FullLabel
-                    : $"+{upgrade.TokenPackSize}";
+                    : $"Charge +{upgrade.TokenPackSize} Tokens";
             string actionLabel = !hasScanner
                 ? string.Empty
                 : isFull
@@ -54,7 +54,7 @@ namespace IdleAirport.GameCore
             SetText(_nameText, Title);
             SetText(_stateText, benefitLabel);
             SetText(_actionText, actionLabel);
-            SetText(_iconText, BuildShortAcronym(Title));
+            SetText(_iconText, "TK");
             ApplyVisualState(visualState, canPurchase && hasScanner && hasCapacity && !isFull);
 
             float targetFill = hasCapacity ? upgrade.TokenFill01 : 0f;
@@ -70,7 +70,6 @@ namespace IdleAirport.GameCore
         {
             if (_cardFillImage == null) return;
 
-            // Ensure the image is configured as filled even if set while inactive
             _cardFillImage.type = Image.Type.Filled;
             _cardFillImage.fillMethod = Image.FillMethod.Horizontal;
 
@@ -119,7 +118,7 @@ namespace IdleAirport.GameCore
             SetText(_nameText, Title);
             SetText(_stateText, LockedLabel);
             SetText(_actionText, string.Empty);
-            SetText(_iconText, BuildShortAcronym(Title));
+            SetText(_iconText, "TK");
             ApplyVisualState(PurchaseCardVisualState.Locked, false);
 
             if (_cardBackgroundImage != null)
