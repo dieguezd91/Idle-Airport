@@ -14,6 +14,7 @@ namespace IdleAirport.GameCore.Prestige
         [SerializeField] private Button _prestigeButton;
         [SerializeField] private Image _prestigeButtonFillImage;
         [SerializeField] private TMP_Text _prestigeLevelText;
+        [SerializeField] private string _defaultButtonText = "PRESTIGE";
 
         [Header("Tooltip Settings")]
         [SerializeField] private GameObject _tooltipRoot;
@@ -108,6 +109,7 @@ namespace IdleAirport.GameCore.Prestige
             UpdateTooltipText();
             if (_tooltipRoot != null)
                 _tooltipRoot.SetActive(true);
+            Refresh();
         }
 
         private void HandlePointerExit()
@@ -115,6 +117,7 @@ namespace IdleAirport.GameCore.Prestige
             _isHovered = false;
             if (_tooltipRoot != null)
                 _tooltipRoot.SetActive(false);
+            Refresh();
         }
 
         private void UpdateTooltipText()
@@ -124,7 +127,7 @@ namespace IdleAirport.GameCore.Prestige
 
             double current = _prestigeService.CurrentAirBucks;
             double required = _prestigeService.RequiredAirBucks;
-            _tooltipText.text = $"$ {NumberFormatter.Format(current)} / $ {NumberFormatter.Format(required)}";
+            _tooltipText.text = $"${NumberFormatter.Format(current)}/${NumberFormatter.Format(required)}";
         }
 
         private void BindButton()
@@ -254,7 +257,14 @@ namespace IdleAirport.GameCore.Prestige
         {
             if (_passportProgressText != null)
             {
-                _passportProgressText.text = $"{NumberFormatter.Format(current)} / {NumberFormatter.Format(required)}";
+                if (_isHovered)
+                {
+                    _passportProgressText.text = $"{NumberFormatter.Format(current)} / {NumberFormatter.Format(required)}";
+                }
+                else
+                {
+                    _passportProgressText.text = _defaultButtonText;
+                }
             }
         }
 
