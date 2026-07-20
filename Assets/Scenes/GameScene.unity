@@ -315,9 +315,8 @@ GameObject:
   - component: {fileID: 28579218}
   - component: {fileID: 28579221}
   - component: {fileID: 28579220}
-  - component: {fileID: 28579222}
   m_Layer: 5
-  m_Name: Button
+  m_Name: Cost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -372,7 +371,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1.25
+  m_PixelsPerUnitMultiplier: 0.9
 --- !u!222 &28579221
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -381,36 +380,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 28579217}
   m_CullTransparentMesh: 1
---- !u!114 &28579222
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 28579217}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30cd1d199eacd0f4d81db5c344f0be6d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _nameText: {fileID: 1684061657}
-  _stateText: {fileID: 1342416934}
-  _actionText: {fileID: 28579229}
-  _iconText: {fileID: 0}
-  _actionButton: {fileID: 1824930366}
-  _cardBackground: {fileID: 1824930364}
-  _actionBackground: {fileID: 28579220}
-  _iconBackground: {fileID: 28579225}
-  _availableCardColor: {r: 0.07, g: 0.11, b: 0.17, a: 0.96}
-  _needMoneyCardColor: {r: 0.12, g: 0.09, b: 0.04, a: 0.96}
-  _lockedCardColor: {r: 0.05, g: 0.05, b: 0.08, a: 0.92}
-  _availableActionColor: {r: 0.18, g: 0.58, b: 0.24, a: 1}
-  _needMoneyActionColor: {r: 0.79, g: 0.49, b: 0.12, a: 1}
-  _lockedActionColor: {r: 0.28, g: 0.28, b: 0.31, a: 1}
-  _availableAccentColor: {r: 0.27, g: 0.85, b: 0.9, a: 1}
-  _needMoneyAccentColor: {r: 1, g: 0.66, b: 0.18, a: 1}
-  _lockedAccentColor: {r: 0.56, g: 0.6, b: 0.69, a: 1}
-  _lockedTextAlpha: 0.72
 --- !u!224 &28579224 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7637066891665587788, guid: 88e50de4ac397ff4a96d0f7fe0d985e8, type: 3}
@@ -10627,7 +10596,7 @@ MonoBehaviour:
   _passengersProcessedText: {fileID: 1618172904}
   _ppsText: {fileID: 392447930}
   _aiTSAScannerUpgrade: {fileID: 1643821349}
-  _aiTSAScannerCardView: {fileID: 28579222}
+  _aiTSAScannerCardView: {fileID: 0}
   _aiMaintenanceTokensCardView: {fileID: 3824930390}
   _aiDurabilityUpgradeCardView: {fileID: 4824930390}
   _buyAITSButton: {fileID: 1824930366}
@@ -11025,8 +10994,9 @@ GameObject:
   - component: {fileID: 1824930365}
   - component: {fileID: 1824930364}
   - component: {fileID: 1824930366}
+  - component: {fileID: 1824930367}
   m_Layer: 5
-  m_Name: Card
+  m_Name: AIScannerCard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11119,7 +11089,7 @@ MonoBehaviour:
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
-    m_FadeDuration: 0.5
+    m_FadeDuration: 0.1
   m_SpriteState:
     m_HighlightedSprite: {fileID: 0}
     m_PressedSprite: {fileID: 0}
@@ -11136,6 +11106,36 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1824930367
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1824930362}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30cd1d199eacd0f4d81db5c344f0be6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _nameText: {fileID: 1684061657}
+  _stateText: {fileID: 1342416934}
+  _actionText: {fileID: 28579229}
+  _iconText: {fileID: 0}
+  _actionButton: {fileID: 1824930366}
+  _cardBackground: {fileID: 1824930364}
+  _actionBackground: {fileID: 28579220}
+  _iconBackground: {fileID: 28579225}
+  _availableCardColor: {r: 0.14509805, g: 0.32156864, b: 0.5568628, a: 1}
+  _needMoneyCardColor: {r: 0.58431375, g: 0.15294118, b: 0.19607843, a: 1}
+  _lockedCardColor: {r: 0.7254902, g: 0.7254902, b: 0.7254902, a: 1}
+  _availableActionColor: {r: 0.18, g: 0.58, b: 0.24, a: 1}
+  _needMoneyActionColor: {r: 0.79, g: 0.49, b: 0.12, a: 1}
+  _lockedActionColor: {r: 0.2784314, g: 0.2784314, b: 0.30980393, a: 1}
+  _availableAccentColor: {r: 0.27, g: 0.85, b: 0.9, a: 1}
+  _needMoneyAccentColor: {r: 1, g: 0.66, b: 0.18, a: 1}
+  _lockedAccentColor: {r: 0.56, g: 0.6, b: 0.69, a: 1}
+  _lockedTextAlpha: 0.72
 --- !u!1 &1911624272
 GameObject:
   m_ObjectHideFlags: 0
@@ -12951,7 +12951,7 @@ GameObject:
   - component: {fileID: 3824930381}
   - component: {fileID: 3824930383}
   m_Layer: 5
-  m_Name: Button
+  m_Name: Cost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13006,7 +13006,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1.25
+  m_PixelsPerUnitMultiplier: 0.9
 --- !u!222 &3824930382
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -13216,9 +13216,9 @@ MonoBehaviour:
   _cardBackground: {fileID: 3824930364}
   _actionBackground: {fileID: 3824930381}
   _iconBackground: {fileID: 6367238483198587983}
-  _availableCardColor: {r: 0.07, g: 0.11, b: 0.17, a: 0.96}
-  _needMoneyCardColor: {r: 0.12, g: 0.09, b: 0.04, a: 0.96}
-  _lockedCardColor: {r: 0.05, g: 0.05, b: 0.08, a: 0.92}
+  _availableCardColor: {r: 0.14509805, g: 0.32156864, b: 0.5568628, a: 1}
+  _needMoneyCardColor: {r: 0.58431375, g: 0.15294118, b: 0.19607843, a: 1}
+  _lockedCardColor: {r: 0.7254902, g: 0.7254902, b: 0.7254902, a: 1}
   _availableActionColor: {r: 0.18, g: 0.58, b: 0.24, a: 1}
   _needMoneyActionColor: {r: 0.79, g: 0.49, b: 0.12, a: 1}
   _lockedActionColor: {r: 0.28, g: 0.28, b: 0.31, a: 1}
@@ -13638,7 +13638,7 @@ GameObject:
   - component: {fileID: 4824930381}
   - component: {fileID: 4824930383}
   m_Layer: 5
-  m_Name: Button
+  m_Name: Cost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13693,7 +13693,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1.25
+  m_PixelsPerUnitMultiplier: 0.9
 --- !u!222 &4824930382
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -13903,10 +13903,10 @@ MonoBehaviour:
   _cardBackground: {fileID: 4824930364}
   _actionBackground: {fileID: 4824930381}
   _iconBackground: {fileID: 619691533}
-  _availableCardColor: {r: 0.07, g: 0.11, b: 0.17, a: 0.96}
-  _needMoneyCardColor: {r: 0.12, g: 0.09, b: 0.04, a: 0.96}
-  _lockedCardColor: {r: 0.05, g: 0.05, b: 0.08, a: 0.92}
-  _availableActionColor: {r: 0.18, g: 0.58, b: 0.24, a: 1}
+  _availableCardColor: {r: 0.14509805, g: 0.32156864, b: 0.5568628, a: 1}
+  _needMoneyCardColor: {r: 0.58431375, g: 0.15294118, b: 0.19607843, a: 1}
+  _lockedCardColor: {r: 0.7254902, g: 0.7254902, b: 0.7254902, a: 1}
+  _availableActionColor: {r: 0.18039216, g: 0.5803922, b: 0.23921569, a: 1}
   _needMoneyActionColor: {r: 0.79, g: 0.49, b: 0.12, a: 1}
   _lockedActionColor: {r: 0.28, g: 0.28, b: 0.31, a: 1}
   _availableAccentColor: {r: 0.27, g: 0.85, b: 0.9, a: 1}
