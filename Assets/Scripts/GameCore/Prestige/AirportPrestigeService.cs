@@ -6,10 +6,10 @@ namespace IdleAirport.GameCore.Prestige
 {
     public sealed class AirportPrestigeService : MonoBehaviour, IPrestigeMultiplierProvider
     {
-
         [SerializeField] private int _basePassportsRequiredForPrestige = 50;
         [SerializeField] private float _passportRequirementGrowthMultiplier = 1.75f;
         [SerializeField] private int _passportRequirementRoundStep = 10;
+        [SerializeField, Min(0f)] private double _requiredAirBucks = 250d;
         [SerializeField] private AirportPrestigeMultiplierConfig _multiplierConfig = new();
         [SerializeField] private PassengerProcessor _passengerProcessor;
         [SerializeField] private List<MonoBehaviour> _resettableBehaviours = new();
@@ -35,7 +35,17 @@ namespace IdleAirport.GameCore.Prestige
             PrestigeCount);
         public double GlobalPrestigeMultiplier => Math.Max(1d, _data.GlobalPrestigeMultiplier);
         public double NextPrestigeMultiplier => CalculateMultiplier(PrestigeCount + 1);
-        public bool CanPrestige => PassportsScannedThisRun >= PassportsRequiredForPrestige;
+        public double RequiredAirBucks => _requiredAirAirBucksCompound();
+        private double _requiredAirAirBucksCompound()
+        {
+            return _requiredAirBucks * Math.Pow(1.5d, PrestigeCount);
+        }
+        public double CurrentAirBucks => _economyController != null ? _economyController.Money : 0d;
+
+        public bool CanPrestige =>
+            _economyController != null &&
+            PassportsScannedThisRun >= PassportsRequiredForPrestige &&
+            CurrentAirBucks >= RequiredAirBucks;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void EnsureRuntimeService()
@@ -71,30 +81,57 @@ namespace IdleAirport.GameCore.Prestige
             if (_passengerProcessor == null)
                 _passengerProcessor = FindFirstObjectByType<PassengerProcessor>();
 
-            if (_passengerProcessor == null)
-                return;
+            if (_passengerProcessor != null)
+            {
+                _passengerProcessor.OnPassengerProcessed += HandlePassengerProcessed;
+            }
 
-            _passengerProcessor.OnPassengerProcessed += HandlePassengerProcessed;
+            if (_economyController == null)
+            {
+                ResolveTypedResettables();
+            }
+
+            if (_economyController != null)
+            {
+                _economyController.OnMoneyChanged -= HandleMoneyChanged;
+                _economyController.OnMoneyChanged += HandleMoneyChanged;
+            }
         }
 
         private void OnDisable()
         {
-            if (_passengerProcessor == null)
-                return;
+            if (_passengerProcessor != null)
+            {
+                _passengerProcessor.OnPassengerProcessed -= HandlePassengerProcessed;
+            }
 
-            _passengerProcessor.OnPassengerProcessed -= HandlePassengerProcessed;
+            if (_economyController != null)
+            {
+                _economyController.OnMoneyChanged -= HandleMoneyChanged;
+            }
         }
 
         public bool TryPrestige()
         {
             ValidateRequirementSettings();
 
-            if (_isPrestigeInProgress || !CanPrestige)
+            if (_isPrestigeInProgress)
+                return false;
+
+            if (_economyController == null)
+                return false;
+
+            if (!CanPrestige)
                 return false;
 
             _isPrestigeInProgress = true;
             try
             {
+                if (!_economyController.TrySpendMoney(RequiredAirBucks))
+                {
+                    return false;
+                }
+
                 _data.PrestigeCount++;
                 _data.GlobalPrestigeMultiplier = CalculateMultiplier(_data.PrestigeCount);
                 _data.PassportsScannedThisRun = 0;
@@ -102,7 +139,11 @@ namespace IdleAirport.GameCore.Prestige
                 ResetRunState();
 
                 PassportsProgressChanged?.Invoke(PassportsScannedThisRun, PassportsRequiredForPrestige);
-                SetPrestigeAvailability(false);
+                
+                // Force a final availability update to ensure availability reflects new state
+                _lastCanPrestige = !CanPrestige;
+                SetPrestigeAvailability(CanPrestige);
+
                 PrestigeCompleted?.Invoke(PrestigeCount, GlobalPrestigeMultiplier);
                 return true;
             }
@@ -123,6 +164,11 @@ namespace IdleAirport.GameCore.Prestige
         private void HandlePassengerProcessed(PassengerProcessor.PassengerProcessedData data)
         {
             RegisterPassportScanned();
+        }
+
+        private void HandleMoneyChanged(double currentMoney)
+        {
+            SetPrestigeAvailability(CanPrestige);
         }
 
         private void RegisterPassportScanned()
@@ -147,6 +193,11 @@ namespace IdleAirport.GameCore.Prestige
             _basePassportsRequiredForPrestige = Mathf.Max(1, _basePassportsRequiredForPrestige);
             _passportRequirementGrowthMultiplier = Mathf.Max(1f, _passportRequirementGrowthMultiplier);
             _passportRequirementRoundStep = Mathf.Max(1, _passportRequirementRoundStep);
+
+            if (double.IsNaN(_requiredAirBucks) || double.IsInfinity(_requiredAirBucks) || _requiredAirBucks < 0d)
+            {
+                _requiredAirBucks = 0d;
+            }
         }
 
         private void AutoWireReferences()
@@ -180,7 +231,7 @@ namespace IdleAirport.GameCore.Prestige
                 for (int i = 0; i < _resettableBehaviours.Count; i++)
                 {
                     if (_resettableBehaviours[i] is T typed)
-                        return typed;
+                         return typed;
                 }
             }
 

@@ -12,6 +12,8 @@ namespace IdleAirport.GameCore.Prestige
         [SerializeField] private Button _prestigeButton;
         [SerializeField] private TMP_Text _prestigeLevelText;
 
+        private EconomyController _economyController;
+
         private void Awake()
         {
             if (_prestigeService == null)
@@ -19,12 +21,18 @@ namespace IdleAirport.GameCore.Prestige
 
             if (_passportProgressText == null && name == "PassengerCounterText")
                 _passportProgressText = GetComponent<TMP_Text>();
+
+            _economyController = FindFirstObjectByType<EconomyController>();
         }
 
         private void OnEnable()
         {
+            if (_economyController == null)
+                _economyController = FindFirstObjectByType<EconomyController>();
+
             BindButton();
             SubscribeToService();
+            SubscribeToEconomy();
             Refresh();
         }
 
@@ -32,12 +40,14 @@ namespace IdleAirport.GameCore.Prestige
         {
             UnbindButton();
             UnsubscribeFromService();
+            UnsubscribeFromEconomy();
         }
 
         public void Configure(AirportPrestigeService prestigeService, TMP_Text passportProgressText, Image passportIcon, Button prestigeButton)
         {
             UnbindButton();
             UnsubscribeFromService();
+            UnsubscribeFromEconomy();
 
             _prestigeService = prestigeService;
             _passportProgressText = passportProgressText;
@@ -48,6 +58,7 @@ namespace IdleAirport.GameCore.Prestige
             {
                 BindButton();
                 SubscribeToService();
+                SubscribeToEconomy();
             }
 
             Refresh();
@@ -91,6 +102,28 @@ namespace IdleAirport.GameCore.Prestige
             _prestigeService.PrestigeCompleted -= HandlePrestigeCompleted;
         }
 
+        private void SubscribeToEconomy()
+        {
+            if (_economyController == null)
+                return;
+
+            _economyController.OnMoneyChanged -= HandleMoneyChanged;
+            _economyController.OnMoneyChanged += HandleMoneyChanged;
+        }
+
+        private void UnsubscribeFromEconomy()
+        {
+            if (_economyController == null)
+                return;
+
+            _economyController.OnMoneyChanged -= HandleMoneyChanged;
+        }
+
+        private void HandleMoneyChanged(double currentMoney)
+        {
+            Refresh();
+        }
+
         public void Refresh()
         {
             if (_prestigeService == null)
@@ -112,7 +145,7 @@ namespace IdleAirport.GameCore.Prestige
 
         private void HandlePassportsProgressChanged(int current, int required)
         {
-            SetProgressText(current, required);
+            Refresh();
         }
 
         private void HandlePrestigeAvailabilityChanged(bool canPrestige)
@@ -137,17 +170,19 @@ namespace IdleAirport.GameCore.Prestige
         private void SetProgressText(int current, int required)
         {
             if (_passportProgressText != null)
+            {
                 _passportProgressText.text = $"{NumberFormatter.Format(current)} / {NumberFormatter.Format(required)}";
+            }
         }
 
         private void SetButtonState(bool canPrestige)
         {
             if (_prestigeButton != null)
-                _prestigeButton.interactable = canPrestige;
+            {
+                _prestigeButton.interactable = _prestigeService != null ? _prestigeService.CanPrestige : false;
+            }
         }
 
-        // Reads the prestige level straight from the service on every call:
-        // no local copy is kept, so the text always reflects the current state.
         private void SetPrestigeLevel()
         {
             if (_prestigeLevelText == null || _prestigeService == null)

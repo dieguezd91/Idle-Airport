@@ -7991,6 +7991,7 @@ MonoBehaviour:
   _basePassportsRequiredForPrestige: 50
   _passportRequirementGrowthMultiplier: 1.75
   _passportRequirementRoundStep: 10
+  _requiredAirBucks: 500
   _multiplierConfig:
     BaseMultiplier: 1
     MultiplierPerPrestigeLevel: 2
@@ -10596,7 +10597,7 @@ MonoBehaviour:
   _passengersProcessedText: {fileID: 1618172904}
   _ppsText: {fileID: 392447930}
   _aiTSAScannerUpgrade: {fileID: 1643821349}
-  _aiTSAScannerCardView: {fileID: 0}
+  _aiTSAScannerCardView: {fileID: 1824930367}
   _aiMaintenanceTokensCardView: {fileID: 3824930390}
   _aiDurabilityUpgradeCardView: {fileID: 4824930390}
   _buyAITSButton: {fileID: 1824930366}
@@ -12076,8 +12077,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0, y: -65.12666}
-  m_SizeDelta: {x: 259.7645, y: 667.7066}
+  m_AnchoredPosition: {x: 0, y: -90.79868}
+  m_SizeDelta: {x: 259.7645, y: 719.0506}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &3000000142
 MonoBehaviour:
@@ -12091,7 +12092,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _areaSize: {x: 300, y: 750}
+  _areaSize: {x: 300, y: 720}
   _cellSize: 45
   _columns: 6
   _rows: 8

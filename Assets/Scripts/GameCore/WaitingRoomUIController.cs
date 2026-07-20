@@ -33,6 +33,7 @@ namespace IdleAirport.GameCore
         private int _baseColumns;
         private int _baseRows;
         private int _baseMaxPassengers;
+        private int _basePassengersPerBoarding;
         private bool _hasBaseLayout;
         private bool _isPrestigeBoardingLayoutApplied;
 
@@ -111,15 +112,21 @@ namespace IdleAirport.GameCore
 
         public void ApplyPrestigeBoardingLayout(bool enabled)
         {
+            ApplyPrestigeBoardingLayout(enabled ? 1 : 0);
+        }
+
+        public void ApplyPrestigeBoardingLayout(int prestigeCount)
+        {
             CacheBaseLayout();
 
-            if (!enabled)
+            if (prestigeCount <= 0)
             {
                 _areaSize = _baseAreaSize;
                 _cellSize = _baseCellSize;
                 _columns = _baseColumns;
                 _rows = _baseRows;
                 _maxPassengers = _baseMaxPassengers;
+                _passengersPerBoarding = _basePassengersPerBoarding;
                 _isPrestigeBoardingLayoutApplied = false;
                 ReapplyGridPositions();
                 NotifyOccupancyChanged();
@@ -129,8 +136,10 @@ namespace IdleAirport.GameCore
             int baseCapacity = _baseMaxPassengers > 0
                 ? Mathf.Min(_baseMaxPassengers, _baseColumns * _baseRows)
                 : _baseColumns * _baseRows;
-            int targetCapacity = Mathf.Max(baseCapacity + 1, Mathf.CeilToInt(baseCapacity * 1.5f));
-            int targetColumns = Mathf.Max(_baseColumns + 1, Mathf.CeilToInt(_baseColumns * 4f / 3f));
+            
+            float scale = Mathf.Pow(1.5f, prestigeCount);
+            int targetCapacity = Mathf.RoundToInt(baseCapacity * scale);
+            int targetColumns = Mathf.RoundToInt(_baseColumns * Mathf.Sqrt(scale));
             int targetRows = Mathf.CeilToInt(targetCapacity / (float)targetColumns);
 
             _areaSize = _baseAreaSize;
@@ -138,6 +147,7 @@ namespace IdleAirport.GameCore
             _rows = Mathf.Max(1, targetRows);
             _maxPassengers = Mathf.Min(targetCapacity, _columns * _rows);
             _cellSize = CalculatePrestigeCellSize(_columns, _rows);
+            _passengersPerBoarding = _basePassengersPerBoarding * Mathf.RoundToInt(Mathf.Pow(2f, prestigeCount));
             _isPrestigeBoardingLayoutApplied = true;
 
             ReapplyGridPositions();
@@ -316,6 +326,7 @@ namespace IdleAirport.GameCore
             _baseColumns = Mathf.Max(1, _columns);
             _baseRows = Mathf.Max(1, _rows);
             _baseMaxPassengers = Mathf.Max(0, _maxPassengers);
+            _basePassengersPerBoarding = Mathf.Max(1, _passengersPerBoarding);
             _hasBaseLayout = true;
         }
 

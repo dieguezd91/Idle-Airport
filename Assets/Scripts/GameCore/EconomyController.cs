@@ -83,6 +83,28 @@ namespace IdleAirport.GameCore
             return true;
         }
 
+        public bool TrySpendMoney(double amount)
+        {
+            if (amount < 0 || double.IsNaN(amount) || double.IsInfinity(amount))
+            {
+                return false;
+            }
+
+            if (amount == 0d)
+            {
+                return true;
+            }
+
+            if (_money < amount)
+            {
+                return false;
+            }
+
+            _money -= amount;
+            OnMoneyChanged?.Invoke(_money);
+            return true;
+        }
+
         public void AddPassengers(int count)
         {
             if (count < 0)
@@ -122,7 +144,8 @@ namespace IdleAirport.GameCore
 
         public void ResetForPrestige()
         {
-            ResetRunStateForPrestige();
+            _totalPassengersProcessed = 0;
+            OnTotalPassengersProcessedChanged?.Invoke(_totalPassengersProcessed);
         }
 
         public void SetPrestigeMultiplierProvider(IPrestigeMultiplierProvider provider)

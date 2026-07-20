@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -69,7 +69,7 @@ namespace IdleAirport.GameCore.Prestige
         private void ApplyPrestigeVisuals(int prestigeCount, bool animate)
         {
             if (_passengerProcessor != null) _passengerProcessor.RefreshManualScannerUnlocks(prestigeCount);
-            if (_waitingRoom != null) _waitingRoom.ApplyPrestigeBoardingLayout(prestigeCount > 0);
+            if (_waitingRoom != null) _waitingRoom.ApplyPrestigeBoardingLayout(prestigeCount);
             AirportPrestigePalette palette = ResolvePalette(prestigeCount);
             if (palette == null || _areaViews == null || _areaViews.Count != 4) return;
             CancelRunningTransition();
