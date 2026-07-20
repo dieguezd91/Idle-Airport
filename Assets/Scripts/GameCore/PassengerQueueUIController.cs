@@ -7,12 +7,15 @@ namespace IdleAirport.GameCore
     public sealed class PassengerQueueUIController : MonoBehaviour, IPrestigeResettable
     {
         [Header("References")]
-        [SerializeField] private RectTransform[] _queueSlots;
+        [SerializeField] private RectTransform _queueAnchor;
         [SerializeField] private PassengerPool _passengerPool;
 
         [Header("Settings")]
-        [SerializeField] private int _initialPassengerCount = 5;
-        [SerializeField] private float _verticalSpacing = 30f;
+        [SerializeField] private int _initialPassengerCount = 15;
+        [SerializeField] private int _maxQueueCapacity = 15;
+        [SerializeField] private int _queueColumns = 3;
+        [SerializeField] private float _horizontalSpacing = 25f;
+        [SerializeField] private float _verticalSpacing = 22f;
 
         private readonly List<PassengerUIVisual> _activeQueue = new();
         private bool _isInitialized;
@@ -25,6 +28,15 @@ namespace IdleAirport.GameCore
             InitializeQueue();
         }
 
+        private void OnValidate()
+        {
+            _initialPassengerCount = Mathf.Max(1, _initialPassengerCount);
+            _maxQueueCapacity = Mathf.Max(_initialPassengerCount, _maxQueueCapacity);
+            _queueColumns = Mathf.Max(1, _queueColumns);
+            _horizontalSpacing = Mathf.Max(1f, _horizontalSpacing);
+            _verticalSpacing = Mathf.Max(1f, _verticalSpacing);
+        }
+
         private void InitializeQueue()
         {
             if (_isInitialized) return;
@@ -35,7 +47,7 @@ namespace IdleAirport.GameCore
             }
 
             _passengerPool.Prewarm();
-            int count = Mathf.Min(_initialPassengerCount, _queueSlots.Length);
+            int count = Mathf.Min(_initialPassengerCount, _maxQueueCapacity);
             for (int i = 0; i < count; i++)
                 ActivatePassenger(i);
 
@@ -76,7 +88,7 @@ namespace IdleAirport.GameCore
             if (_passengerPool == null) return;
 
             int nextSlot = _activeQueue.Count;
-            if (nextSlot >= _queueSlots.Length) return;
+            if (nextSlot >= _maxQueueCapacity) return;
 
             if (!_passengerPool.TryGet(out PassengerUIVisual p))
                 return;
@@ -92,7 +104,7 @@ namespace IdleAirport.GameCore
         private void ActivatePassenger(int slotIndex)
         {
             if (_passengerPool == null) return;
-            if (slotIndex >= _queueSlots.Length) return;
+            if (slotIndex >= _maxQueueCapacity) return;
 
             if (!_passengerPool.TryGet(out PassengerUIVisual p))
                 return;
@@ -124,37 +136,38 @@ namespace IdleAirport.GameCore
             if (!TryGetQueueAnchor(out Vector2 anchorPosition))
                 return Vector2.zero;
 
-            return anchorPosition + new Vector2(0f, _verticalSpacing * slotIndex);
+            int rowIndex = slotIndex / _queueColumns;
+            int colIndex = slotIndex % _queueColumns;
+
+            // Reverse column direction on even rows so index 0 starts on the right
+            if (rowIndex % 2 == 0)
+            {
+                colIndex = (_queueColumns - 1) - colIndex;
+            }
+
+            float xOffset = (colIndex - (_queueColumns - 1) * 0.5f) * _horizontalSpacing;
+            float yOffset = rowIndex * _verticalSpacing;
+
+            return anchorPosition + new Vector2(xOffset, yOffset);
         }
 
         private bool TryGetQueueAnchor(out Vector2 anchorPosition)
         {
-            anchorPosition = Vector2.zero;
-
-            if (_queueSlots == null || _queueSlots.Length == 0)
-                return false;
-
-            float sumX = 0f;
-            float lowestY = 0f;
-            int validCount = 0;
-
-            for (int i = 0; i < _queueSlots.Length; i++)
+            if (_queueAnchor != null)
             {
-                RectTransform slot = _queueSlots[i];
-                if (slot == null)
-                    continue;
-
-                Vector2 slotPosition = slot.anchoredPosition;
-                sumX += slotPosition.x;
-                lowestY = validCount == 0 ? slotPosition.y : Mathf.Min(lowestY, slotPosition.y);
-                validCount++;
+                anchorPosition = _queueAnchor.anchoredPosition;
+                return true;
             }
 
-            if (validCount == 0)
-                return false;
+            // Fallback to component's own RectTransform
+            if (transform is RectTransform rt)
+            {
+                anchorPosition = rt.anchoredPosition;
+                return true;
+            }
 
-            anchorPosition = new Vector2(sumX / validCount, lowestY);
-            return true;
+            anchorPosition = Vector2.zero;
+            return false;
         }
     }
 }
