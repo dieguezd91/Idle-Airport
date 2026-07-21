@@ -144,7 +144,9 @@ namespace IdleAirport.GameCore
 
         public void ResetForPrestige()
         {
+            _money = 0;
             _totalPassengersProcessed = 0;
+            OnMoneyChanged?.Invoke(_money);
             OnTotalPassengersProcessedChanged?.Invoke(_totalPassengersProcessed);
         }
 

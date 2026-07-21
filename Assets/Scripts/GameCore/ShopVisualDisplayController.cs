@@ -28,6 +28,7 @@ namespace IdleAirport.GameCore
 
             _shopVisuals = new ShopVisualItemView[_storesManager.StoreCount];
             _storesManager.OnStorePurchased += HandleStorePurchased;
+            _storesManager.OnBusinessesChanged += SyncFromCurrentState;
 
             SyncFromCurrentState();
         }
@@ -35,7 +36,10 @@ namespace IdleAirport.GameCore
         private void OnDestroy()
         {
             if (_storesManager != null)
+            {
                 _storesManager.OnStorePurchased -= HandleStorePurchased;
+                _storesManager.OnBusinessesChanged -= SyncFromCurrentState;
+            }
         }
 
         private void HandleStorePurchased(int index, Store store)
@@ -73,6 +77,13 @@ namespace IdleAirport.GameCore
                 if (stores[i].OwnedCount > 0)
                 {
                     CreateOrUpdateVisual(i, stores[i]);
+                }
+                else
+                {
+                    if (_shopVisuals != null && i < _shopVisuals.Length && _shopVisuals[i] != null)
+                    {
+                        _shopVisuals[i].gameObject.SetActive(false);
+                    }
                 }
             }
         }
