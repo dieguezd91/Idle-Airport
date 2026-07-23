@@ -8,6 +8,7 @@ namespace IdleAirport.GameCore
     {
         [SerializeField] private string _name;
         [SerializeField][TextArea] private string _description;
+        [SerializeField] private Sprite _icon;
         [SerializeField] private double _incomePerPassenger;
         [SerializeField] private double _baseCost;
         [SerializeField] private double _costMultiplier = 1.15;
@@ -19,6 +20,7 @@ namespace IdleAirport.GameCore
 
         public string Name => _name;
         public string Description => _description;
+        public Sprite Icon => _icon;
         public double IncomePerPassenger => _incomePerPassenger;
         public double CurrentCost => _baseCost * Math.Pow(_costMultiplier, _ownedCount);
         public int OwnedCount => _ownedCount;

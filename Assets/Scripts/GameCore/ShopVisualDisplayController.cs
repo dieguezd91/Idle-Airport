@@ -101,7 +101,7 @@ namespace IdleAirport.GameCore
             }
 
             _shopVisuals[index].gameObject.SetActive(true);
-            _shopVisuals[index].SetData(store.Name, store.OwnedCount, store.IncomePerPassenger);
+            _shopVisuals[index].SetData(store.Name, store.Icon, store.OwnedCount, store.IncomePerPassenger);
             return _shopVisuals[index];
         }
 

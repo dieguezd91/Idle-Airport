@@ -27,8 +27,29 @@ namespace IdleAirport.GameCore
 
         public void SetData(string storeName, int ownedCount, double incomePerPassenger)
         {
+            SetData(storeName, null, ownedCount, incomePerPassenger);
+        }
+
+        public void SetData(string storeName, Sprite icon, int ownedCount, double incomePerPassenger)
+        {
             if (_nameText != null)
-                _nameText.text = storeName;
+            {
+                _nameText.text = string.Empty;
+                _nameText.gameObject.SetActive(false);
+            }
+
+            if (_icon != null)
+            {
+                if (icon != null)
+                {
+                    _icon.sprite = icon;
+                    _icon.enabled = true;
+                }
+                else
+                {
+                    _icon.enabled = false;
+                }
+            }
 
             if (_levelText != null)
                 _levelText.text = $"Lv. {ownedCount}";

@@ -1851,7 +1851,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.2, g: 0.6, b: 0.35, a: 0.9}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.9}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -7643,8 +7643,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 123, y: -4}
-  m_SizeDelta: {x: 225, y: 150}
+  m_AnchoredPosition: {x: 105, y: -125}
+  m_SizeDelta: {x: 175, y: 150}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &800000311
 CanvasRenderer:
@@ -7945,7 +7945,7 @@ MonoBehaviour:
   _nameText: {fileID: 800000316}
   _levelText: {fileID: 800000320}
   _bonusText: {fileID: 0}
-  _icon: {fileID: 0}
+  _icon: {fileID: 399754577}
   _feedbackDuration: 0.22
   _feedbackScale: 1.08
   _incomeFeedbackScale: 1.04
@@ -10964,6 +10964,7 @@ MonoBehaviour:
   _stores:
   - _name: Coffee Store
     _description: A small kiosk near the gates.
+    _icon: {fileID: 21300000, guid: d28548d65f4f48e41a404cc0fb6a0cbb, type: 3}
     _incomePerPassenger: 1
     _baseCost: 25
     _costMultiplier: 1.15
@@ -10971,6 +10972,7 @@ MonoBehaviour:
     _isUnlocked: 1
   - _name: Duty Free
     _description: Tax-free shopping for travelers.
+    _icon: {fileID: 21300000, guid: 0709f49558f3bb246a6a27cefd1f7de7, type: 3}
     _incomePerPassenger: 5
     _baseCost: 50
     _costMultiplier: 1.15
@@ -10978,6 +10980,7 @@ MonoBehaviour:
     _isUnlocked: 1
   - _name: VIP Lounge
     _description: Exclusive lounge for premium passengers.
+    _icon: {fileID: 21300000, guid: 1576ef1e3f3dff44fada8bf5587eae00, type: 3}
     _incomePerPassenger: 10
     _baseCost: 100
     _costMultiplier: 1.15
