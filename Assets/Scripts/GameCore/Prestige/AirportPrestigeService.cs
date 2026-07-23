@@ -14,6 +14,10 @@ namespace IdleAirport.GameCore.Prestige
         [SerializeField] private PassengerProcessor _passengerProcessor;
         [SerializeField] private List<MonoBehaviour> _resettableBehaviours = new();
 
+        [Header("Testing / Debug Settings")]
+        [SerializeField] private bool _enableTestingKey = true;
+        [SerializeField] private KeyCode _testingPrestigeKey = KeyCode.P;
+
         private readonly AirportPrestigeData _data = new();
         private bool _lastCanPrestige;
         private bool _isPrestigeInProgress;
@@ -111,6 +115,14 @@ namespace IdleAirport.GameCore.Prestige
             }
         }
 
+        private void Update()
+        {
+            if (_enableTestingKey && Input.GetKeyDown(_testingPrestigeKey))
+            {
+                ForcePrestigeForTesting();
+            }
+        }
+
         public bool TryPrestige()
         {
             ValidateRequirementSettings();
@@ -145,6 +157,43 @@ namespace IdleAirport.GameCore.Prestige
                 SetPrestigeAvailability(CanPrestige);
 
                 PrestigeCompleted?.Invoke(PrestigeCount, GlobalPrestigeMultiplier);
+                return true;
+            }
+            finally
+            {
+                _isPrestigeInProgress = false;
+            }
+        }
+
+        public bool ForcePrestigeForTesting()
+        {
+            ValidateRequirementSettings();
+
+            if (_isPrestigeInProgress)
+                return false;
+
+            if (_economyController == null)
+            {
+                ResolveTypedResettables();
+            }
+
+            _isPrestigeInProgress = true;
+            try
+            {
+                _data.PrestigeCount++;
+                _data.GlobalPrestigeMultiplier = CalculateMultiplier(_data.PrestigeCount);
+                _data.PassportsScannedThisRun = 0;
+
+                ResetRunState();
+
+                PassportsProgressChanged?.Invoke(PassportsScannedThisRun, PassportsRequiredForPrestige);
+
+                // Force a final availability update to ensure availability reflects new state
+                _lastCanPrestige = !CanPrestige;
+                SetPrestigeAvailability(CanPrestige);
+
+                PrestigeCompleted?.Invoke(PrestigeCount, GlobalPrestigeMultiplier);
+                Debug.Log($"[AirportPrestigeService] Testing Prestige Simulated! New Level: {PrestigeCount}, Multiplier: {GlobalPrestigeMultiplier}x");
                 return true;
             }
             finally

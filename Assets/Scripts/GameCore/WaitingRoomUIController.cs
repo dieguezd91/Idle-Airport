@@ -134,20 +134,15 @@ namespace IdleAirport.GameCore
                 return;
             }
 
-            int baseCapacity = _baseMaxPassengers > 0
-                ? Mathf.Min(_baseMaxPassengers, _baseColumns * _baseRows)
-                : _baseColumns * _baseRows;
-            
+            int baseCapacity = _baseMaxPassengers > 0 ? _baseMaxPassengers : _baseColumns * _baseRows;
             float scale = Mathf.Pow(1.5f, prestigeCount);
             int targetCapacity = Mathf.RoundToInt(baseCapacity * scale);
-            int targetColumns = Mathf.RoundToInt(_baseColumns * Mathf.Sqrt(scale));
-            int targetRows = Mathf.CeilToInt(targetCapacity / (float)targetColumns);
 
             _areaSize = _baseAreaSize;
-            _columns = Mathf.Max(1, targetColumns);
-            _rows = Mathf.Max(1, targetRows);
+            _columns = _baseColumns;
+            _rows = _baseRows;
+            _cellSize = _baseCellSize;
             _maxPassengers = targetCapacity;
-            _cellSize = CalculatePrestigeCellSize(_columns, _rows);
             _passengersPerBoarding = _basePassengersPerBoarding * Mathf.RoundToInt(Mathf.Pow(2f, prestigeCount));
             _isPrestigeBoardingLayoutApplied = true;
 

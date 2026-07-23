@@ -156,7 +156,7 @@ namespace IdleAirport.GameCore
             _prestigeMultiplierProviderBehaviour = provider as MonoBehaviour;
         }
 
-        private double GetPrestigeMultiplier()
+        public double GetPrestigeMultiplier()
         {
             if (_prestigeMultiplierProvider == null)
                 CachePrestigeMultiplierProvider();

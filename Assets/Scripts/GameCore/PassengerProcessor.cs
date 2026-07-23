@@ -149,7 +149,7 @@ namespace IdleAirport.GameCore
             EnsureManualLanesReady();
 
             int unlockedCount = _manualScanners.Count > 0
-                ? Mathf.Clamp(1 + _currentPrestigeCount, 1, _manualScanners.Count)
+                ? 1
                 : 0;
 
             for (int i = 0; i < _manualLanes.Count; i++)
@@ -492,14 +492,19 @@ namespace IdleAirport.GameCore
             PassengerRewardBreakdown reward = GetPassengerRewardBreakdown();
             if (_economyController == null) return reward;
 
-            reward = reward.WithFinalReward(_economyController.RewardProcessedPassenger(reward.TotalReward));
-            return reward;
+            double multiplier = _economyController.GetPrestigeMultiplier();
+            double finalBase = reward.BaseReward * multiplier;
+            double finalShop = reward.ShopBonus * multiplier;
+            double finalTotal = _economyController.RewardProcessedPassenger(reward.TotalReward);
+
+            return new PassengerRewardBreakdown(finalBase, finalShop, finalTotal);
         }
 
         public double GetTotalPassengerReward()
         {
             PassengerRewardBreakdown reward = GetPassengerRewardBreakdown();
-            return reward.TotalReward;
+            double multiplier = _economyController != null ? _economyController.GetPrestigeMultiplier() : 1.0;
+            return reward.TotalReward * multiplier;
         }
 
         public double GetShopsPassengerIncomeBonus()

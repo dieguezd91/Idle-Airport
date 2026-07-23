@@ -418,11 +418,10 @@ namespace IdleAirport.GameCore
 
         private void UpdatePassengerIncomeTexts()
         {
-            double baseIncome = _economyController != null ? _economyController.GetBasePassengerIncome() : 0.0;
-            double shopsBonus = _storesManager != null ? _storesManager.GetPassengerIncomeBonus() : 0.0;
-            double totalIncome = _passengerProcessor != null
-                ? _passengerProcessor.GetTotalPassengerReward()
-                : baseIncome + shopsBonus;
+            double multiplier = _economyController != null ? _economyController.GetPrestigeMultiplier() : 1.0;
+            double baseIncome = (_economyController != null ? _economyController.GetBasePassengerIncome() : 0.0) * multiplier;
+            double shopsBonus = (_storesManager != null ? _storesManager.GetPassengerIncomeBonus() : 0.0) * multiplier;
+            double totalIncome = baseIncome + shopsBonus;
 
             if (_basePassengerIncomeText != null)
                 _basePassengerIncomeText.text = $"Base: ${NumberFormatter.Format(baseIncome, 2)}/pax";

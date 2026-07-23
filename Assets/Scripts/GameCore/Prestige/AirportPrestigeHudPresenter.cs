@@ -91,6 +91,14 @@ namespace IdleAirport.GameCore.Prestige
             _tooltipTrigger.OnExit = HandlePointerExit;
         }
 
+        private bool IsTooltipRootButtonLabel()
+        {
+            if (_tooltipRoot == null || _prestigeButton == null)
+                return false;
+
+            return _tooltipRoot == _prestigeButton.gameObject || _tooltipRoot.transform.IsChildOf(_prestigeButton.transform);
+        }
+
         private void CleanupTooltipTrigger()
         {
             if (_tooltipTrigger != null)
@@ -99,7 +107,7 @@ namespace IdleAirport.GameCore.Prestige
                 _tooltipTrigger.OnExit = null;
             }
             _isHovered = false;
-            if (_tooltipRoot != null)
+            if (_tooltipRoot != null && !IsTooltipRootButtonLabel())
                 _tooltipRoot.SetActive(false);
         }
 
@@ -107,7 +115,7 @@ namespace IdleAirport.GameCore.Prestige
         {
             _isHovered = true;
             UpdateTooltipText();
-            if (_tooltipRoot != null)
+            if (_tooltipRoot != null && !IsTooltipRootButtonLabel())
                 _tooltipRoot.SetActive(true);
             Refresh();
         }
@@ -115,7 +123,7 @@ namespace IdleAirport.GameCore.Prestige
         private void HandlePointerExit()
         {
             _isHovered = false;
-            if (_tooltipRoot != null)
+            if (_tooltipRoot != null && !IsTooltipRootButtonLabel())
                 _tooltipRoot.SetActive(false);
             Refresh();
         }
@@ -127,7 +135,7 @@ namespace IdleAirport.GameCore.Prestige
 
             double current = _prestigeService.CurrentAirBucks;
             double required = _prestigeService.RequiredAirBucks;
-            _tooltipText.text = $"${NumberFormatter.Format(current)}/${NumberFormatter.Format(required)}";
+            _tooltipText.text = $"${NumberFormatter.Format(current)} / ${NumberFormatter.Format(required)}";
         }
 
         private void BindButton()
@@ -210,6 +218,13 @@ namespace IdleAirport.GameCore.Prestige
             {
                 UpdateTooltipText();
             }
+            else
+            {
+                if (IsTooltipRootButtonLabel() && _tooltipText != null)
+                {
+                    _tooltipText.text = _defaultButtonText;
+                }
+            }
 
             if (_passportIcon != null)
                 _passportIcon.enabled = _passportIcon.sprite != null;
@@ -257,14 +272,7 @@ namespace IdleAirport.GameCore.Prestige
         {
             if (_passportProgressText != null)
             {
-                if (_isHovered)
-                {
-                    _passportProgressText.text = $"{NumberFormatter.Format(current)} / {NumberFormatter.Format(required)}";
-                }
-                else
-                {
-                    _passportProgressText.text = _defaultButtonText;
-                }
+                _passportProgressText.text = $"{NumberFormatter.Format(current)} / {NumberFormatter.Format(required)}";
             }
         }
 
